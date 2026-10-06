@@ -39,15 +39,20 @@ function flat(codes) {
 // expect: 'ok' or a result code that must appear in the failure codes.
 async function run(label, expect, buildAndSign) {
   let outcome, hash = null, codes = null;
-  try {
-    const tx = await buildAndSign();
-    const res = await server.submitTransaction(tx);
-    hash = res.hash;
-    outcome = 'ok';
-  } catch (err) {
-    codes = codesOf(err);
-    hash = err?.response?.data?.extras?.hash ?? null;
-    outcome = flat(codes);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const tx = await buildAndSign();
+      // Hash computed locally, so failed-but-on-ledger refusals (op_line_full, ...) are linkable too.
+      hash = Buffer.from(tx.hash()).toString('hex');
+      await server.submitTransaction(tx);
+      outcome = 'ok';
+    } catch (err) {
+      codes = codesOf(err);
+      outcome = flat(codes);
+      // Retry only transport errors; a result code is the network's answer and is never retried.
+      if (codes.error && attempt < 3) { await new Promise((r) => setTimeout(r, 2000)); continue; }
+    }
+    break;
   }
   const pass = expect === 'ok' ? outcome === 'ok' : outcome.includes(expect);
   steps.push({ label, expect, outcome, pass, hash });
