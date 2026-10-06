@@ -15,7 +15,6 @@ const bytes = (s: string) => new TextEncoder().encode(s).length;
 export function cleanName(raw: string): string {
   const s = raw.normalize('NFC').replace(/\s+/g, ' ').trim();
   if (!s) throw new ProfileError('name is empty');
-  // eslint-disable-next-line no-control-regex
   if (/[\u0000-\u001f\u007f]/.test(s)) throw new ProfileError('name contains control characters');
   if (bytes(s) > MAX_NAME_BYTES) throw new ProfileError(`name is ${bytes(s)} bytes; the limit is ${MAX_NAME_BYTES}`);
   return s;

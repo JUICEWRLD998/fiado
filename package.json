@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:testnet": "vitest run --mode testnet --silent=false",
     "e2e": "playwright test",
-    "fixtures": "vitest run --mode capture --silent=false"
+    "fixtures": "vitest run --mode capture --silent=false",
+    "export": "node scripts/export-book.mjs"
   },
   "repository": {
     "type": "git",
