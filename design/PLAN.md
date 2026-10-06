@@ -169,7 +169,7 @@ Same data, same refusal moment, differing on structure, type voice and where the
 
 ## Phase 7 hand-off (2026-10-06)
 
-**Built:** SIGNAL-free "counter book" system: tokens (both themes, measured), Shell, Book, Slip, Gauge, Notice, Work (left-aligned slip plus aside), RefusalMoment (the signature moment, beat sheet 0.12/0.52/0.64/0.76/0.90 s), landing with a real R1 hero, OG card, favicon.
+**Built:** the "counter book" system: tokens (both themes, measured), Shell, Book, Slip, Gauge, Notice, Work (left-aligned slip plus aside), RefusalMoment (the signature moment, beat sheet 0.12/0.52/0.64/0.76/0.90 s), landing with a real R1 hero, OG card, favicon.
 
 **Measured and passing**
 - ui-score round 2, home / shop-setup / customer-setup: controls guarded terms held (textContrast 20/20, focusRing 8/8, lcpNotLazy 4/4); **zero critical tells**. Round 1 criticals (three-equal-columns, side-stripe-card, centred-everything-hero) are fixed. Remaining are minor: `missing-hover-state` (a false positive: hover rules sit behind `@media (hover:hover) and (pointer:fine)`; `design/verify/hover.mjs` with a planted control shows every real control changes on hover except the focus-only skip link) and `gradient-in-declaration-only`.
