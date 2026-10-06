@@ -130,7 +130,7 @@ function Tabs({ custody, pub }: { custody: Custody; pub: string }) {
           <p className={s.muted}>Facts any shop can check on the public ledger. It is not a score.</p>
           <ul className={s.list} style={{ border: 0 }}>
             <li style={{ border: 0, padding: 0 }}>
-              {rec.purchases} purchases at {rec.shops} {rec.shops === 1 ? 'shop' : 'shops'} · {rec.settled} paid off
+              {rec.purchases} {rec.purchases === 1 ? 'purchase' : 'purchases'} at {rec.shops} {rec.shops === 1 ? 'shop' : 'shops'} · {rec.settled} paid off
               {rec.medianDaysToRepay !== null ? ` (usually in ${rec.medianDaysToRepay} ${rec.medianDaysToRepay === 1 ? 'day' : 'days'})` : ''}
               {rec.overdueNow > 0 ? ` · ${rec.overdueNow} past due` : ''}
             </li>

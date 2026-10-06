@@ -1,9 +1,7 @@
 name: CI
 
+# Manual only while the GitHub account's Actions billing is locked; the same checks run locally before every commit.
 on:
-  push:
-    branches: [main, 'phase-*/**']
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -25,7 +23,6 @@ jobs:
 
   # Hits public testnet (friendbot + Horizon). Runs on main and on demand only.
   testnet:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     needs: check
     runs-on: ubuntu-latest
     steps:

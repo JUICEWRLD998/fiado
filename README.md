@@ -5,7 +5,7 @@
 A shop gives a customer a credit line. Only the customer can write a debt into it. The Stellar network refuses
 any purchase over the limit. A customer who pays on time can carry that record to the next shop.
 
-> Status: **in build, testnet only.** Labels used everywhere: LIVE / NEXT / NOT LIVE.
+> Status: **in build, testnet only.** The thin path (join, buy on credit, over-limit refusal, repayment) works end to end in two real browsers. Labels used everywhere: LIVE / NEXT / NOT LIVE.
 > Built for the Find Your Way Hackathon (Stellar Passport), General Track, by Mustapha Fadhlullah.
 
 ## The problem, in shopkeepers' words
@@ -55,6 +55,10 @@ protocol features. On Stellar the credit book needs no contract to audit and no 
 - **Not a lender.** Fiado never extends credit, holds money or charges interest.
 - **Not a credit score.** The record is arithmetic over public transactions, shown as facts, never as one number.
 - **Not on mainnet.** This submission runs on testnet by design.
+
+## Deploying (Vercel)
+
+The two phones pass a transaction through a small mailbox (`/api/handoff`). Locally it lives in memory. **On Vercel it needs Redis**: add the free Upstash integration (Vercel dashboard → Storage → Upstash) and its environment variables are picked up automatically. Everything else is static or stateless. Nothing secret is stored.
 
 ## Develop
 
