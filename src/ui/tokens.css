@@ -1,0 +1,36 @@
+/* Design tokens. Placeholder values until Phase 7 (ui-studio) measures the real palette. */
+:root {
+  --paper: oklch(97% 0.012 85);
+  --ink: oklch(22% 0.02 260);
+  --ink-soft: oklch(42% 0.02 260);
+  --rule: oklch(86% 0.03 230);
+  --margin: oklch(62% 0.17 25);
+  --ok: oklch(52% 0.12 155);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --radius: 10px;
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: oklch(20% 0.012 260);
+    --ink: oklch(94% 0.012 85);
+    --ink-soft: oklch(76% 0.015 85);
+    --rule: oklch(34% 0.03 230);
+    --margin: oklch(70% 0.15 25);
+    --ok: oklch(74% 0.12 155);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.5 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
