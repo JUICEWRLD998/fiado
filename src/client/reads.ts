@@ -3,7 +3,7 @@
 import { book, record, todayUtc, toCustomerInfo, toLines, toMovements, type Book, type CustomerInfo, type RawBalance, type RawPayment, type RecordSummary } from '../book';
 import { toStroops } from '../chain/amount';
 import { HORIZON_URL, DEFAULT_CURRENCY, decodeData, NAME_KEY, CURRENCY_KEY } from '../chain';
-import { server } from '../chain/horizon';
+import { readProfile, server } from '../chain/horizon';
 
 type PagedRecords<T> = { _embedded: { records: T[] }; _links: { next: { href: string } } };
 
@@ -86,6 +86,19 @@ export async function loadRecord(customer: string, today: string = todayUtc()): 
   } catch {
     return null;
   }
+}
+
+export type ShopProfiles = Record<string, { name: string | null; currency: string }>;
+
+/** Names and currencies of the shops in a record, so their amounts can be shown in their own currency. */
+export async function loadShopProfiles(pubs: string[]): Promise<ShopProfiles> {
+  const entries = await Promise.all(
+    [...new Set(pubs)].map(async (p) => {
+      const profile = await readProfile(p).catch(() => null);
+      return [p, { name: profile?.name ?? null, currency: profile?.currency ?? DEFAULT_CURRENCY }] as const;
+    }),
+  );
+  return Object.fromEntries(entries);
 }
 
 export { toStroops };
