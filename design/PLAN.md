@@ -166,3 +166,18 @@ Same data, same refusal moment, differing on structure, type voice and where the
 - **Route:** custom, **bespoke**: the structure itself (the page is a book; loose things are slips) is the idea, and no catalog macrostructure has it. Stamp is at the top of `src/ui/tokens.css`.
 - **First Hallmark run in this project**, so there is no rotation to state. Nav: wordmark left, two role links right (the product has exactly two destinations, so the minimal archetype is honest here). Footer: none on app routes; one-line colophon on the landing.
 - **Locked tokens:** every colour and font in component CSS is a `var(--…)`. The chalkboard's local colours were prototype-only and are deleted with the prototype.
+
+## Phase 7 hand-off (2026-10-06)
+
+**Built:** SIGNAL-free "counter book" system: tokens (both themes, measured), Shell, Book, Slip, Gauge, Notice, Work (left-aligned slip plus aside), RefusalMoment (the signature moment, beat sheet 0.12/0.52/0.64/0.76/0.90 s), landing with a real R1 hero, OG card, favicon.
+
+**Measured and passing**
+- ui-score round 2, home / shop-setup / customer-setup: controls guarded terms held (textContrast 20/20, focusRing 8/8, lcpNotLazy 4/4); **zero critical tells**. Round 1 criticals (three-equal-columns, side-stripe-card, centred-everything-hero) are fixed. Remaining are minor: `missing-hover-state` (a false positive: hover rules sit behind `@media (hover:hover) and (pointer:fine)`; `design/verify/hover.mjs` with a planted control shows every real control changes on hover except the focus-only skip link) and `gradient-in-declaration-only`.
+- axe-core (`design/verify/a11y.mjs`, planted `image-alt` control seen): zero violations on `/`, `/shop`, `/c` at 375 and 1280, light and dark. CLS 0.000 on all.
+- Overflow: clean at all eight widths, both themes (`design/verify/shoot.mjs`).
+- Unit 216/216; live-testnet e2e green (thin path, two-shop feature set); lint and typecheck clean.
+
+**Not run, so not claimed**
+- `break` per component under long names / huge amounts; `ecc:click-path-audit`; `better-interface` per screen; `ecc:design-system` audit; blind critic; Hallmark 60-gate slop test; `better-writing` pass; signature-moment filmstrip and reduced-motion run; width/height-animation static guard.
+- axe on `/c/join`, `/c/pay`, `/record/[pub]` and on the open sale slip (they need live state; run against the demo world in Phase 8).
+- Next warns it cannot compute fallback metrics for Atkinson Hyperlegible Next; CLS is 0 in practice but a fallback could still jump on a slow font.
