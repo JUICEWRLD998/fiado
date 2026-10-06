@@ -10,4 +10,5 @@ Every claim in the README maps to a command anyone can run, and the output it mu
 | 4 | A repayment burns the debt | `npm run spike` | `PASS  shop FIADO balance after cash repay`, `2000.0000000` |
 | 5 | A dollar repayment and the burn happen in one transaction, or not at all | `npm run spike` | `PASS  atomic repay with insufficient TUSD -> whole tx reverts`, balance stays `500.0000000` |
 | 6 | The customer never holds or spends XLM | `npm run spike` | `PASS  customer still holds 0 XLM at the end` |
-| 7 | The chain layer behaves the same way the spike does | `npm run test:testnet` | all tests pass, tx hashes printed |
+| 7 | The typed chain layer reproduces every spike result, including each refusal | `npm run test:testnet` | `Tests  11 passed (11)`, with a testnet explorer link per step |
+| 8 | Builders put every operation in the right order, with the right signer, asset and memo | `npm test` | `Tests  22 passed (22)` (20 chain-layer tests + 2 testnet-only guard tests) |

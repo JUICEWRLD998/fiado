@@ -2,6 +2,37 @@
 
 Newest first. Every entry carries the measurement that justified it.
 
+## 2026-10-06 — Chain layer: typed builders reproduce the spike (Phase 2)
+
+**Decision:** all chain access goes through `src/chain`. That module holds pure builders (`joinCustomer`, `openCredit`, `setLimit`, `buyOnCredit`, `feeBump`, `repayCash`, `repayDollars`, `closeCredit`), plus `submit()`, which turns every Horizon result code into a typed `ChainRefusal`.
+
+**Measurement:** `npm test` passes 22/22 offline. The tests check op order, sources, assets, limits, memos and the two client-side guards. `npm run test:testnet` passes 11/11 live on 2026-10-06, and every refusal came back with the expected code:
+
+| Step | Result | Tx |
+|---|---|---|
+| join (0 XLM, sponsored) | ok | `c990e796…428d` |
+| open line 5,000 | ok | `71412e83…0df7` |
+| buy 3,000 (fee-bumped) | ok | `db66f956…ce3c` |
+| buy 2,500 more | `op_line_full` | `378507e2…f0ca` |
+| shop forges a purchase | `op_bad_auth` | `12c36811…b96d` (never on ledger) |
+| pay an unauthorized shop | `op_not_authorized` | `bc4186fd…97c4` |
+| cash repay 1,000 | ok | `2b69d645…2a37` |
+| dollar repay (1 TUSD + burn 1,500) | ok | `8cc5c537…1f0b` |
+| short dollar repay | `op_underfunded`, burn cancelled | `2d0c1d35…a6a2` |
+| limit below debt (guard bypassed) | `op_invalid_limit` | `d1a016c3…2a57` |
+| close at zero | ok | `3ac47906…2755` |
+| buy at the closed line | `op_no_trust` | `875be321…c785` |
+
+**Rules fixed here:**
+- **Purchase memo format:** `"<item>|<YYMMDD>"` in the 28-byte text memo. The limit is counted in UTF-8 bytes, so `₦` costs 3. A `|` typed inside the item is replaced by `/`, so an item can never forge a due date. A cash repay has memo `cash`, a written-off debt has memo `forgiven`, and a dollar repay has memo `dollars`.
+- **Two guards run before the network:** a limit below the open debt, and closing a line that still has debt. Both are refused locally with the reason. The network enforces the same rules anyway (`op_invalid_limit`, proven above with the guard bypassed).
+- **Amounts are exact:** amounts are validated and compared in stroops (`bigint`), never as floats.
+- **Retries:** transport errors (friendbot `ECONNRESET`) are retried; a result code is the network's answer and is never retried.
+
+**Two corrections marked in place:**
+1. The first builder tests compared text memos as strings, but SDK v17 returns them as bytes. The tests were wrong, not the builders.
+2. A `sed` edit lost its newline under MSYS and commented out the test helper. It was fixed with a direct edit.
+
 ## 2026-10-06 — Passkey keys via WebAuthn PRF: probe ready, phones pending
 
 **Decision:** derive each user's ed25519 Stellar key from a passkey's PRF output (32 bytes). Fallback: a device-stored key plus a printed recovery card, chosen only if real phones fail the probe.
