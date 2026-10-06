@@ -1,0 +1,24 @@
+{
+  "name": "fiado",
+  "version": "1.0.0",
+  "description": "The credit book the network keeps: shop credit lines as Stellar trustline limits (testnet)",
+  "scripts": {
+    "spike": "node scripts/spike.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JUICEWRLD998/fiado.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/JUICEWRLD998/fiado/issues"
+  },
+  "homepage": "https://github.com/JUICEWRLD998/fiado#readme",
+  "private": true,
+  "dependencies": {
+    "@stellar/stellar-sdk": "^17.2.1"
+  }
+}
