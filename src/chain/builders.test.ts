@@ -5,13 +5,16 @@ import {
   closeCredit,
   feeBump,
   fiadoOf,
+  joinAndOpen,
   joinCustomer,
   LimitError,
   openCredit,
   repayCash,
   repayDollars,
   setLimit,
+  setupShop,
 } from './builders';
+import { ProfileError } from './profile';
 
 const shopKp = Keypair.random();
 const custKp = Keypair.random();
@@ -40,6 +43,48 @@ describe('joinCustomer', () => {
     expect(create.destination).toBe(CUST);
     expect(create.startingBalance).toBe('0.0000000');
     expect((tx.operations[2] as { setFlags?: number }).setFlags).toBe(AuthRequiredFlag);
+  });
+});
+
+describe('joinAndOpen', () => {
+  const tx = joinAndOpen({ shop: shopAcct(), customer: CUST, limit: '10000', name: 'Bisi' });
+
+  it('joins and opens the line in one tx; the shop pays its own trustline after sponsorship ends', () => {
+    expect(tx.source).toBe(SHOP);
+    expect(shape(tx)).toEqual([
+      ['beginSponsoringFutureReserves', null],
+      ['createAccount', null],
+      ['setOptions', CUST],
+      ['manageData', CUST],
+      ['endSponsoringFutureReserves', CUST],
+      ['changeTrust', null],
+      ['setTrustLineFlags', CUST],
+    ]);
+  });
+
+  it('puts the customer name on the sponsored account and the limit on the shop trustline', () => {
+    const data = tx.operations[3] as { name: string; value: Uint8Array | string | null };
+    expect(data.name).toBe('name');
+    expect(new TextDecoder().decode(data.value as Uint8Array)).toBe('Bisi');
+    expect((tx.operations[5] as { limit: string }).limit).toBe('10000.0000000');
+    expect((tx.operations[1] as { startingBalance: string }).startingBalance).toBe('0.0000000');
+  });
+
+  it('refuses an unusable name before building', () => {
+    expect(() => joinAndOpen({ shop: shopAcct(), customer: CUST, limit: '10', name: '' })).toThrow(ProfileError);
+  });
+});
+
+describe('setupShop', () => {
+  it('publishes the name and currency as the shop own data entries', () => {
+    const tx = setupShop({ shop: shopAcct(), name: 'Mama Bisi', currency: '₦' });
+    expect(shape(tx)).toEqual([
+      ['manageData', null],
+      ['manageData', null],
+    ]);
+    const [a, b] = tx.operations as { name: string; value: Uint8Array }[];
+    expect([a!.name, new TextDecoder().decode(a!.value)]).toEqual(['name', 'Mama Bisi']);
+    expect([b!.name, new TextDecoder().decode(b!.value)]).toEqual(['currency', '₦']);
   });
 });
 

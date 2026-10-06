@@ -1,6 +1,8 @@
 import { Horizon, type FeeBumpTransaction, type Transaction } from '@stellar/stellar-sdk';
 import { FRIENDBOT_URL, HORIZON_URL } from './config';
 import { fiadoOf } from './builders';
+import { toHex } from './hex';
+import { CURRENCY_KEY, DEFAULT_CURRENCY, decodeData, NAME_KEY } from './profile';
 
 export const server = new Horizon.Server(HORIZON_URL);
 
@@ -19,7 +21,7 @@ export class ChainRefusal extends Error {
   }
 }
 
-export const hashOf = (tx: Transaction | FeeBumpTransaction) => Buffer.from(tx.hash()).toString('hex');
+export const hashOf = (tx: Transaction | FeeBumpTransaction) => toHex(tx.hash());
 
 /** Submits, and turns a Horizon result-code failure into a ChainRefusal. Transport errors are rethrown as-is. */
 export async function submit(tx: Transaction | FeeBumpTransaction): Promise<{ hash: string; ledger: number }> {
@@ -63,6 +65,24 @@ export async function creditLine(shop: string, customer: string): Promise<Credit
     return { customer, owed: b.balance, limit: b.limit, authorized: Boolean(b.is_authorized) };
   }
   return null;
+}
+
+export type Profile = { name: string | null; currency: string };
+
+/** Name and currency published on an account's data entries. An account that does not exist yet has none. */
+export async function readProfile(accountId: string): Promise<Profile | null> {
+  try {
+    const acct = await server.loadAccount(accountId);
+    const data = acct.data_attr ?? {};
+    return { name: decodeData(data[NAME_KEY]), currency: decodeData(data[CURRENCY_KEY]) ?? DEFAULT_CURRENCY };
+  } catch (err) {
+    if ((err as { response?: { status?: number } })?.response?.status === 404) return null;
+    throw err;
+  }
+}
+
+export async function accountExists(accountId: string): Promise<boolean> {
+  return (await readProfile(accountId)) !== null;
 }
 
 export async function xlmBalance(accountId: string): Promise<string> {
