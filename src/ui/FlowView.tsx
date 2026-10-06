@@ -3,9 +3,10 @@
 import { EXPLORER_TX } from '../chain/config';
 import type { ShopFlowState } from '../client/flows';
 import { Qr } from './Qr';
+import { RecordFacts } from './RecordFacts';
 import s from './ui.module.css';
 
-/** Renders whatever a shop-side interaction has reached: the code to show, or how it ended. */
+/** Renders whatever a shop-side interaction has reached: the code to show, a decision to make, or how it ended. */
 export function FlowView({ state, onClose }: { state: ShopFlowState | null; onClose: () => void }) {
   if (!state) return null;
 
@@ -22,6 +23,28 @@ export function FlowView({ state, onClose }: { state: ShopFlowState | null; onCl
         <button type="button" className={s.ghost} onClick={onClose}>
           Cancel
         </button>
+      </div>
+    );
+  }
+
+  if (state.step === 'review_customer') {
+    return (
+      <div data-testid="review-customer">
+        <h3 style={{ margin: '0 0 8px' }}>{state.name} wants a credit line</h3>
+        {state.existing ? (
+          <p className={s.muted}>They already use Fiado. Their record, read from the public ledger:</p>
+        ) : (
+          <p className={s.muted}>This is their first time on Fiado.</p>
+        )}
+        {state.record && <RecordFacts record={state.record} shops={state.shops} />}
+        <div className={s.actions}>
+          <button type="button" className={s.button} data-testid="approve-customer" onClick={state.approve}>
+            Open their line
+          </button>
+          <button type="button" className={s.ghost} data-testid="decline-customer" onClick={state.decline}>
+            Not now
+          </button>
+        </div>
       </div>
     );
   }
