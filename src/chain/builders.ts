@@ -14,11 +14,14 @@ import {
 import { BASE_FEE, BUMP_FEE, FIADO_CODE, NETWORK_PASSPHRASE, TX_TIMEOUT_S } from './config';
 import { toAmount, toStroops } from './amount';
 import { encodeNote, type PurchaseNote } from './memo';
+import { cleanCurrency, cleanName, CURRENCY_KEY, NAME_KEY } from './profile';
 
 export const fiadoOf = (customer: string) => new Asset(FIADO_CODE, customer);
 
 /** Any source TransactionBuilder accepts: an `Account` or a Horizon `AccountResponse`. */
 export type Source = ConstructorParameters<typeof TransactionBuilder>[0];
+
+const shopId = (s: Source) => s.accountId();
 
 function builder(source: Source, memo?: string) {
   const b = new TransactionBuilder(source, { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE }).setTimeout(TX_TIMEOUT_S);
@@ -39,6 +42,35 @@ export function joinCustomer(p: { shop: Source; customer: string }): Transaction
     .addOperation(Operation.createAccount({ destination: p.customer, startingBalance: '0' }))
     .addOperation(Operation.setOptions({ source: p.customer, setFlags: AuthRequiredFlag }))
     .addOperation(Operation.endSponsoringFutureReserves({ source: p.customer }))
+    .build();
+}
+
+/**
+ * First visit: join a new customer AND open their line in one transaction. The shop sponsors the
+ * customer's account (0 XLM) and its `name` entry; the customer turns on AUTH_REQUIRED; the shop
+ * trusts the customer's FIADO up to `limit` and the customer authorizes that. Signers: shop, customer.
+ * The shop's own trustline comes after endSponsoring, so the shop pays its own reserve.
+ */
+export function joinAndOpen(p: { shop: Source; customer: string; limit: string; name: string }): Transaction {
+  const asset = fiadoOf(p.customer);
+  return builder(p.shop)
+    .addOperation(Operation.beginSponsoringFutureReserves({ sponsoredId: p.customer }))
+    .addOperation(Operation.createAccount({ destination: p.customer, startingBalance: '0' }))
+    .addOperation(Operation.setOptions({ source: p.customer, setFlags: AuthRequiredFlag }))
+    .addOperation(Operation.manageData({ source: p.customer, name: NAME_KEY, value: cleanName(p.name) }))
+    .addOperation(Operation.endSponsoringFutureReserves({ source: p.customer }))
+    .addOperation(Operation.changeTrust({ asset, limit: toAmount(p.limit) }))
+    .addOperation(
+      Operation.setTrustLineFlags({ source: p.customer, trustor: shopId(p.shop), asset, flags: { authorized: true } }),
+    )
+    .build();
+}
+
+/** Shop onboarding: publish the shop's name and currency symbol as account data. Signer: shop. */
+export function setupShop(p: { shop: Source; name: string; currency: string }): Transaction {
+  return builder(p.shop)
+    .addOperation(Operation.manageData({ name: NAME_KEY, value: cleanName(p.name) }))
+    .addOperation(Operation.manageData({ name: CURRENCY_KEY, value: cleanCurrency(p.currency) }))
     .build();
 }
 

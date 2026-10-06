@@ -12,4 +12,5 @@ export const FIADO_CODE = 'FIADO';
 // Fees in stroops. The inner fee is never charged when the shop fee-bumps.
 export const BASE_FEE = '100';
 export const BUMP_FEE = '200';
-export const TX_TIMEOUT_S = 120;
+// Long enough for two people to pass a transaction between two phones, short enough to expire if abandoned.
+export const TX_TIMEOUT_S = 300;
