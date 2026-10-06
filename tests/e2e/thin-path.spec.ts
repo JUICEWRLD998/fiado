@@ -6,27 +6,11 @@
 //
 //   join -> purchase -> OVER-LIMIT purchase refused by the network -> cash repayment -> the customer's view
 
-import { devices, expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { passkeyDevice } from './helpers';
 
 const SHOTS = 'test-results/thin-path';
-
-async function passkeyDevice(context: BrowserContext, page: Page) {
-  const cdp = await context.newCDPSession(page);
-  await cdp.send('WebAuthn.enable');
-  await cdp.send('WebAuthn.addVirtualAuthenticator', {
-    options: {
-      protocol: 'ctap2',
-      ctap2Version: 'ctap2_1',
-      transport: 'internal',
-      hasResidentKey: true,
-      hasUserVerification: true,
-      isUserVerified: true,
-      hasPrf: true,
-      automaticPresenceSimulation: true,
-    },
-  });
-}
 
 test('shop and customer complete the thin path on testnet', async ({ browser, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'one live run is enough');
@@ -63,6 +47,9 @@ test('shop and customer complete the thin path on testnet', async ({ browser, ba
   await expect(cust.getByTestId('offer-limit')).toHaveText('₦10,000');
   await cust.getByTestId('customer-name').fill('Bisi');
   await cust.getByTestId('join-button').click();
+  // the shop sees who is asking, and their record (none yet), and chooses to open the line
+  await expect(shop.getByTestId('review-customer')).toContainText('first time', { timeout: 90_000 });
+  await shop.getByTestId('approve-customer').click();
   await expect(cust.getByTestId('review-card')).toBeVisible({ timeout: 90_000 });
   await cust.screenshot({ path: `${SHOTS}/03-customer-review-join.png` });
   await cust.getByTestId('sign-join').click();
