@@ -2,6 +2,16 @@
 
 Newest first. Every entry carries the measurement that justified it.
 
+## 2026-10-06 — Passkey keys via WebAuthn PRF: probe ready, phones pending
+
+**Decision:** derive each user's ed25519 Stellar key from a passkey's PRF output (32 bytes). Fallback: a device-stored key plus a printed recovery card, chosen only if real phones fail the probe.
+**Measurement:** `probes/prf.html`, driven in headless Chrome through a CDP virtual authenticator. PRF on → 32 bytes, with the same fingerprint (`97c3018c`) on two reads, so the derived key is stable. PRF off → no result, and the probe reports FAIL. Both controls behave, so the probe can be trusted on real phones. **Real Android and iOS 18+ results are still open.**
+
+## 2026-10-06 — Testnet is safe to build and judge on
+
+**Decision:** build and demo on testnet with no reset contingency beyond the planned envelope export.
+**Measurement:** no testnet reset is announced for October 2026. The last testnet event was Protocol 28 on 2026-08-27 (developers.stellar.org/docs/networks/software-versions). Resets are announced at least two weeks ahead, so none can land before judging (Oct 13-16) unannounced. Re-check on 2026-10-09.
+
 ## 2026-10-06 — The credit line is a trustline limit (spike: 21/21 on testnet)
 
 **Decision:** build Fiado on classic Stellar IOU semantics, with no smart contract:
