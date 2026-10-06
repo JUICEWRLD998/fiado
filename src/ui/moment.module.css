@@ -1,0 +1,42 @@
+/* The signature moment: the line stops at the margin. Beats are in src/ui/motion.ts and design/PLAN.md. */
+
+.moment {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.stampRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 3.5rem;
+}
+
+/* a rubber stamp: its own row, so it never covers a figure or a date */
+.stamp {
+  display: inline-block;
+  padding: 2px var(--space-4) 4px;
+  border: 3px solid var(--margin);
+  border-radius: 6px;
+  color: var(--margin);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.figures {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+.sentence {
+  margin: var(--space-1) 0 0;
+  color: var(--margin);
+  font-weight: 600;
+}
+
+.sentence a {
+  color: inherit;
+}

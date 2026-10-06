@@ -1,0 +1,116 @@
+/* Button. Eight states: default, hover, focus-visible (global, in tokens.css), active, disabled, loading, error, success. */
+
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--target);
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  line-height: 1.1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition-property: transform, background-color, border-color, color, opacity;
+  transition-duration: var(--dur-micro);
+  transition-timing-function: var(--ease-out);
+}
+
+/* press: the interface says it heard you */
+.button:active:not(:disabled, [aria-disabled='true']) {
+  transform: scale(0.97);
+}
+
+.button[data-variant='primary'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.button[data-variant='secondary'] {
+  background: transparent;
+  border-color: var(--rule-strong);
+  color: var(--ink);
+}
+
+.button[data-variant='quiet'] {
+  min-height: var(--target);
+  padding: 0 var(--space-3);
+  background: transparent;
+  color: var(--accent);
+}
+
+/* hover only where a pointer can really hover: a tap on a phone must not leave a sticky hover */
+@media (hover: hover) and (pointer: fine) {
+  .button[data-variant='primary']:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--accent) 86%, var(--ink));
+    border-color: color-mix(in oklab, var(--accent) 86%, var(--ink));
+  }
+
+  .button[data-variant='secondary']:hover:not(:disabled) {
+    background: var(--accent-wash);
+    border-color: var(--accent);
+  }
+
+  .button[data-variant='quiet']:hover:not(:disabled) {
+    background: var(--accent-wash);
+  }
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* loading: a small ring, the one thing allowed to move on its own, and only until the work is done */
+.button[aria-busy='true'] {
+  cursor: progress;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* error and success: colour is never the only signal, the label changes too (set by the caller) */
+.button[data-tone='success'] {
+  border-color: var(--tally);
+  color: var(--tally);
+}
+
+.button[data-tone='error'] {
+  border-color: var(--margin);
+  color: var(--margin);
+}
+
+.button[data-variant='primary'][data-tone='success'] {
+  background: var(--tally);
+  color: var(--paper);
+}
+
+.button[data-variant='primary'][data-tone='error'] {
+  background: var(--margin);
+  color: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled, [aria-disabled='true']) {
+    transform: none;
+  }
+}

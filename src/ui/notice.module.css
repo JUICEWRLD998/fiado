@@ -1,0 +1,44 @@
+/* A line of ink under the heading: what just happened. Colour is paired with words, never the only signal. */
+
+.notice {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--rule-strong);
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  background: var(--accent-wash);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.notice[data-tone='ok'] {
+  border-left-color: var(--tally);
+  background: var(--tally-wash);
+}
+
+.notice[data-tone='problem'] {
+  border-left-color: var(--margin);
+  background: var(--margin-wash);
+}
+
+.notice[data-tone='pending'] {
+  border-left-color: var(--highlight);
+  background: var(--highlight-wash);
+}
+
+.notice > :last-child {
+  margin-bottom: 0;
+}
+
+/* the one entrance for a notice: a short fade, no travel */
+@media (prefers-reduced-motion: no-preference) {
+  .notice {
+    animation: arrive var(--dur-short) var(--ease-out) both;
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}

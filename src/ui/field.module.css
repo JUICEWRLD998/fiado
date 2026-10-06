@@ -1,0 +1,59 @@
+/* Text and select fields. A 16px input never makes a phone zoom the page; the box is a 48px target. */
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.label {
+  font-size: var(--text-s);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.control {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--raised);
+  color: var(--ink);
+  font-size: var(--text-m);
+  transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+
+.control::placeholder {
+  color: var(--ink-2);
+  opacity: 0.8;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .control:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+}
+
+.control:disabled {
+  opacity: 0.55;
+  background: var(--sunk);
+}
+
+.control[aria-invalid='true'] {
+  border-color: var(--margin);
+  background: var(--margin-wash);
+}
+
+.hint {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+.error {
+  margin: 0;
+  color: var(--margin);
+  font-size: var(--text-s);
+  font-weight: 600;
+}

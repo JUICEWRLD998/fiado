@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import '@/ui/tokens.css';
+import { MotionProvider } from '@/ui/MotionProvider';
+import { atkinson, bricolage } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Fiado',
@@ -13,8 +15,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${bricolage.variable} ${atkinson.variable}`}>
+      <body>
+        <MotionProvider>{children}</MotionProvider>
+      </body>
     </html>
   );
 }
