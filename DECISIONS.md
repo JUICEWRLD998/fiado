@@ -2,6 +2,35 @@
 
 Newest first. Every entry carries the measurement that justified it.
 
+## 2026-10-06 — Phases 3-5: the thin path works end to end, in two real browsers, on testnet
+
+**Measurement:** `npx playwright test thin-path` (desktop shop + phone-sized customer, each with its own virtual passkey authenticator with PRF), run twice against live testnet, both green (1.3 and 1.5 min). Each run uses brand-new accounts. Checked against the ledger, not just the UI. Run 1:
+
+| Step | Result | Tx |
+|---|---|---|
+| Join: sponsored 0-XLM account + on-chain name + trustline limit 10,000 + authorization, one tx | success, 7 ops | `d5970fc2…fb3a` |
+| Purchase ₦3,200 "Rice 2 bags", customer-signed, shop fee-bump | success | `afb4facc…11fb` |
+| Purchase ₦9,000 (headroom ₦6,800), customer-signed | **`successful=false`, decoded result: `txFeeBumpInnerFailed` → `txFailed` → payment `paymentLineFull`**, on ledger 5054710 | `8544a6cc…c4c7` |
+| Cash repayment ₦1,000 | success; shop book and customer tab both read ₦2,200 | (UI) |
+
+Screenshots of every step: `test-results/thin-path/` (not committed; regenerate with the command above).
+
+**Decisions made while building (each one a change from the written plan):**
+1. **The mailbox holds no secrets and is not trusted, so the planned HMAC is dropped.** Every client rebuilds the transaction it expects and compares it to what it received (`src/handoff/verify.ts`): same source, operations byte for byte, memo, fee cap, 15-minute expiry cap, required signatures. 25 hostile cases are tested and 19 mutants of the security-critical code were killed. Two mutants initially survived and exposed real test gaps (a source-account check and the exact refusal reasons); both are now covered.
+2. **One transaction joins a customer and opens the line** (`joinAndOpen`), including their display name as an on-chain data entry. Proven live before anything was built on it. A second shop opening a line for an existing customer uses `openCredit` instead, and the verifier knows which to expect.
+3. **No sponsor server, no temporary accounts, no sweep job.** The shop's own key sponsors and fee-bumps from the shop's browser, so the plan's relayer, sponsor-balance alert and sweep were not needed.
+4. **Names live on-chain** (`name` and `currency` data entries), so the book and the record need no database.
+5. **The shop's book trusts the network's balance and uses history only to explain it.** A row shows `explained: false` when the movements do not add up, and a FIADO line is only a customer if its issuer has `AUTH_REQUIRED` (a rogue issuer minting its own "FIADO" is ignored; tested with a real capture).
+6. **Handoff storage is pluggable.** In memory locally; **Upstash Redis in production** (Vercel dashboard → Storage → Upstash; the variables `UPSTASH_REDIS_REST_URL`/`_TOKEN` or `KV_REST_API_URL`/`_TOKEN` are read automatically). The Upstash adapter is tested against a fake HTTP server for its exact request shape; **it has not been run against a live Redis.**
+7. **Setup is resumable.** The key, shop name and currency are saved first; the shop screen finishes any missing on-chain setup itself, so a reload mid-setup cannot strand a shop.
+
+**Corrections marked in place:**
+- My first tamper control for the export verifier never took effect (it mutated a copy the SDK rebuilt) and reported a false pass. Redone at the XDR level, with a before/after count, and it fails correctly.
+- My first e2e record assertion ended in `.catch(() => {})`, which could never fail. Replaced by a strict assertion, which also exposed "1 purchases".
+- SDK v17 changed three shapes the plan assumed (text memos come back as bytes, signatures are `{value}` objects, `TransactionEnvelope` is a union). All handled and tested.
+
+**Not done, and why:** (a) real Android/iPhone passkey-PRF runs (the virtual authenticator proves our code path, not every phone); (b) a screen recording on two real phones; (c) a live Upstash run; (d) GitHub Actions has never run, because the account is billing-locked (CI is now manual-only).
+
 ## 2026-10-06 — Chain layer: typed builders reproduce the spike (Phase 2)
 
 **Decision:** all chain access goes through `src/chain`. That module holds pure builders (`joinCustomer`, `openCredit`, `setLimit`, `buyOnCredit`, `feeBump`, `repayCash`, `repayDollars`, `closeCredit`), plus `submit()`, which turns every Horizon result code into a typed `ChainRefusal`.
