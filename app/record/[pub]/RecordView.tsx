@@ -6,8 +6,12 @@ import { readProfile } from '@/chain/horizon';
 import { messageOf } from '@/client/flows';
 import { shortKey } from '@/client/format';
 import { loadRecord, loadShopProfiles, type ShopProfiles } from '@/client/reads';
+import { Book } from '@/ui/Book';
+import { LedgerCorner } from '@/ui/Illustrations';
+import { Notice } from '@/ui/Notice';
 import { RecordFacts } from '@/ui/RecordFacts';
-import s from '@/ui/ui.module.css';
+import u from '@/ui/screens.module.css';
+import { Shell } from '@/ui/Shell';
 
 type View =
   | { status: 'loading' }
@@ -42,39 +46,42 @@ export default function RecordView({ pub }: { pub: string }) {
     };
   }, [pub]);
 
-  return (
-    <main className={s.page}>
-      <header className={s.header}>
-        <h1 className={s.title} data-testid="record-title">
-          {view.status === 'ok' && view.name ? `${view.name}’s record` : 'Fiado record'}
-        </h1>
-        <span className={s.tag}>Testnet · {shortKey(pub)}</span>
-      </header>
+  const title = view.status === 'ok' && view.name ? `${view.name}’s record` : 'Fiado record';
 
-      {view.status === 'loading' && <p>Reading the ledger…</p>}
-      {view.status === 'missing' && (
-        <p role="alert" data-testid="record-missing" className={s.problem}>
-          No Fiado account exists at this address.
-        </p>
-      )}
-      {view.status === 'error' && (
-        <p role="alert" className={s.problem}>
-          {view.message}
-        </p>
-      )}
-      {view.status === 'ok' && (
-        <section className={s.card}>
-          <p className={s.muted}>
-            How this person has used shop credit. These are facts counted from public transactions, not a score. Anyone can check them.
-          </p>
-          <RecordFacts record={view.record} shops={view.shops} />
-          <p className={s.muted}>
-            <a href={`https://stellar.expert/explorer/testnet/account/${pub}`} target="_blank" rel="noreferrer">
-              Check it on the ledger
-            </a>
-          </p>
-        </section>
-      )}
-    </main>
+  return (
+    <Shell>
+      <Book
+        title={title}
+        titleTestId="record-title"
+        meta={<p style={{ margin: 0 }}>Public. Counted from transactions on the Stellar test network · {shortKey(pub)}</p>}
+        aside={
+          <div className={u.asideCard}>
+            <h2>Not a score</h2>
+            <p className={u.meta} style={{ margin: 0 }}>
+              Counts and a median, nothing hidden. A shop reads them and decides for itself.
+            </p>
+            <LedgerCorner className={u.art} />
+          </div>
+        }
+      >
+        {view.status === 'loading' && <p>Reading the ledger…</p>}
+        {view.status === 'missing' && (
+          <Notice tone="problem" data-testid="record-missing">
+            No Fiado account exists at this address.
+          </Notice>
+        )}
+        {view.status === 'error' && <Notice tone="problem">{view.message}</Notice>}
+        {view.status === 'ok' && (
+          <section className={u.stack}>
+            <RecordFacts record={view.record} shops={view.shops} />
+            <p className={u.meta}>
+              <a href={`https://stellar.expert/explorer/testnet/account/${pub}`} target="_blank" rel="noreferrer">
+                Check it on the ledger
+              </a>
+            </p>
+          </section>
+        )}
+      </Book>
+    </Shell>
   );
 }

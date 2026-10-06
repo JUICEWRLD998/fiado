@@ -10,16 +10,30 @@ import { loadRecord, loadShopProfiles, loadTabs, type ShopProfiles, type Tab } f
 import { whatsappLink } from '@/client/remind';
 import { useCustody, type Custody } from '@/client/useCustody';
 import type { Mode } from '@/passkey/custody';
+import { Book, BookRow, BookRows } from '@/ui/Book';
+import { Button, buttonStyle } from '@/ui/Button';
+import { TextField } from '@/ui/Field';
+import { Gauge } from '@/ui/Gauge';
+import { LedgerCorner, TallyEmpty } from '@/ui/Illustrations';
 import { KeyChoice } from '@/ui/KeyChoice';
+import { Notice } from '@/ui/Notice';
 import { RecordFacts } from '@/ui/RecordFacts';
-import s from '@/ui/ui.module.css';
+import u from '@/ui/screens.module.css';
+import { Shell } from '@/ui/Shell';
+import { Slip } from '@/ui/Slip';
+
+const units = (n: bigint) => Number(n) / 10_000_000;
 
 export default function CustomerHome() {
   const custody = useCustody('customer');
-  if (custody.status === 'loading') return <main className={s.page}><p>Loading…</p></main>;
-  if (custody.status === 'none') return <CreateKey custody={custody} />;
-  if (custody.status === 'locked' || !custody.kp) return <Locked custody={custody} />;
-  return <Tabs custody={custody} pub={custody.kp.publicKey()} />;
+  return (
+    <Shell>
+      {custody.status === 'loading' && <p>Loading…</p>}
+      {custody.status === 'none' && <CreateKey custody={custody} />}
+      {(custody.status === 'locked' || (custody.status === 'ready' && !custody.kp)) && <Locked custody={custody} />}
+      {custody.status === 'ready' && custody.kp && <Tabs custody={custody} pub={custody.kp.publicKey()} />}
+    </Shell>
+  );
 }
 
 function CreateKey({ custody }: { custody: Custody }) {
@@ -42,38 +56,32 @@ function CreateKey({ custody }: { custody: Custody }) {
   }
 
   return (
-    <main className={s.page}>
-      <header className={s.header}>
-        <h1 className={s.title}>Your tabs</h1>
-        <span className={s.tag}>Testnet only</span>
-      </header>
-      <form className={s.card} onSubmit={submit}>
-        <p>Make your Fiado key. Shops will see this name next to your tab, so use the name they know you by.</p>
-        <div className={s.field}>
-          <label htmlFor="customer-name">Your name</label>
-          <input id="customer-name" data-testid="customer-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
-        </div>
-        <KeyChoice canPasskey={custody.canPasskey} mode={effective} onChange={setMode} />
-        <button type="submit" className={s.button} data-testid="create-customer-key" disabled={custody.busy}>
-          {custody.busy ? 'Creating…' : 'Create my key'}
-        </button>
-        {(problem ?? custody.error) && <p role="alert" className={s.problem}>{problem ?? custody.error}</p>}
-      </form>
-    </main>
+    <div className={u.centre}>
+      <Slip title="Make your Fiado key">
+        <form onSubmit={submit}>
+          <p>Shops will see this name next to your tab, so use the name they know you by.</p>
+          <TextField label="Your name" data-testid="customer-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+          <KeyChoice canPasskey={custody.canPasskey} mode={effective} onChange={setMode} />
+          <Button type="submit" variant="primary" data-testid="create-customer-key" busy={custody.busy}>
+            {custody.busy ? 'Creating…' : 'Create my key'}
+          </Button>
+          {(problem ?? custody.error) && <Notice tone="problem">{problem ?? custody.error}</Notice>}
+        </form>
+      </Slip>
+    </div>
   );
 }
 
 function Locked({ custody }: { custody: Custody }) {
   return (
-    <main className={s.page}>
-      <h1 className={s.title}>Welcome back</h1>
-      <div className={s.card}>
-        <button type="button" className={s.button} data-testid="unlock-customer" disabled={custody.busy} onClick={() => void custody.unlock()}>
+    <div className={u.centre}>
+      <Slip title="Welcome back">
+        <Button variant="primary" data-testid="unlock-customer" busy={custody.busy} onClick={() => void custody.unlock()}>
           {custody.busy ? 'Unlocking…' : 'Unlock with passkey'}
-        </button>
-        {custody.error && <p role="alert" className={s.problem}>{custody.error}</p>}
-      </div>
-    </main>
+        </Button>
+        {custody.error && <Notice tone="problem">{custody.error}</Notice>}
+      </Slip>
+    </div>
   );
 }
 
@@ -104,45 +112,68 @@ function Tabs({ custody, pub }: { custody: Custody; pub: string }) {
   }, [pub, refresh]);
 
   const shareOnWhatsApp = () => window.open(whatsappLink(`My Fiado record: ${window.location.origin}/record/${pub}`), '_blank', 'noopener');
+  const tabs = data?.tabs ?? [];
 
   return (
-    <main className={s.page} data-testid="customer-ready">
-      <header className={s.header}>
-        <h1 className={s.title}>{custody.meta?.name ?? 'Your tabs'}</h1>
-        <span className={s.tag}>Testnet · {shortKey(pub)}</span>
-      </header>
-
-      <h2>Open tabs</h2>
-      {data && data.tabs.length === 0 && (
-        <p className={s.muted} data-testid="tabs-empty">You have no tabs yet. When a shop gives you a join code, scan it or open its link.</p>
-      )}
-      <ul className={s.list}>
-        {data?.tabs.map((t) => (
-          <li key={t.shop} data-testid="tab-row">
-            <div className={s.rowTop}>
-              <span className={s.name} data-testid="tab-shop">{t.shopName ?? shortKey(t.shop)}</span>
-              <span className={s.owed} data-testid="tab-owed">{formatAmount(t.owed, t.currency)}</span>
-            </div>
-            <div className={s.muted}>
-              Limit {formatAmount(t.limit, t.currency)} · <span data-testid="tab-headroom">{formatAmount(t.headroom, t.currency)}</span> left
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      {data?.record && data.record.purchases > 0 && (
-        <section className={s.card} data-testid="record-summary" aria-labelledby="rec-title">
-          <h2 id="rec-title">Your record</h2>
-          <p className={s.muted}>Facts any shop can check on the public ledger. It is not a score, and it is yours to share.</p>
-          <RecordFacts record={data.record} shops={data.shops} />
-          <div className={s.actions}>
-            <Link className={s.ghost} style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }} data-testid="my-record-link" href={`/record/${pub}`}>
-              Open my shareable record
-            </Link>
-            <button type="button" className={s.ghost} data-testid="share-record" onClick={shareOnWhatsApp}>Share on WhatsApp</button>
+    <div data-testid="customer-ready">
+      <Book
+        title={custody.meta?.name ?? 'Your tabs'}
+        meta={<p style={{ margin: 0 }}>{data ? (tabs.length === 0 ? 'No open tabs.' : `${tabs.length} open ${tabs.length === 1 ? 'tab' : 'tabs'}`) : 'Reading the ledger…'}</p>}
+        aside={
+          <div className={u.asideCard}>
+            <h2>Only you can add to your tab</h2>
+            <p className={u.meta} style={{ margin: 0 }}>
+              Every purchase needs your signature, and the network refuses anything over your limit.
+            </p>
+            <LedgerCorner className={u.art} />
+            <p className={u.meta} style={{ margin: 0 }}>
+              Testnet · {shortKey(pub)}
+            </p>
           </div>
-        </section>
-      )}
-    </main>
+        }
+      >
+        {data && tabs.length === 0 && (
+          <div className={u.empty} data-testid="tabs-empty">
+            <TallyEmpty className={u.emptyArt} />
+            <p>You have no tabs yet. When a shop gives you a join code, scan it or open its link.</p>
+          </div>
+        )}
+
+        <BookRows>
+          {tabs.map((t) => (
+            <BookRow key={t.shop} testId="tab-row" mark={t.owed === 0n ? 'clear' : undefined}>
+              <div className={u.top}>
+                <span className={u.name} data-testid="tab-shop">
+                  {t.shopName ?? shortKey(t.shop)}
+                </span>
+                <span className={u.owed} data-testid="tab-owed">
+                  {formatAmount(t.owed, t.currency)}
+                </span>
+              </div>
+              <Gauge owed={units(t.owed)} limit={units(t.limit)} label={`${formatAmount(t.owed, t.currency)} owed of a ${formatAmount(t.limit, t.currency)} limit`} />
+              <p className={u.meta}>
+                Limit {formatAmount(t.limit, t.currency)} · <span data-testid="tab-headroom">{formatAmount(t.headroom, t.currency)}</span> left
+              </p>
+            </BookRow>
+          ))}
+        </BookRows>
+
+        {data?.record && data.record.purchases > 0 && (
+          <section className={u.stack} style={{ marginTop: 32 }} data-testid="record-summary" aria-labelledby="rec-title">
+            <h2 id="rec-title">Your record</h2>
+            <p className={u.meta}>Facts any shop can check on the public ledger. It is not a score, and it is yours to share.</p>
+            <RecordFacts record={data.record} shops={data.shops} />
+            <div className={u.actions}>
+              <Link {...buttonStyle('secondary')} data-testid="my-record-link" href={`/record/${pub}`}>
+                Open my shareable record
+              </Link>
+              <Button variant="quiet" data-testid="share-record" onClick={shareOnWhatsApp}>
+                Share on WhatsApp
+              </Button>
+            </div>
+          </section>
+        )}
+      </Book>
+    </div>
   );
 }

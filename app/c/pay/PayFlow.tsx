@@ -10,11 +10,17 @@ import { readSession } from '@/client/handoff';
 import { loadTabs } from '@/client/reads';
 import { useCustody } from '@/client/useCustody';
 import type { BuyOffer } from '@/handoff/session';
-import s from '@/ui/ui.module.css';
+import { Button, buttonStyle } from '@/ui/Button';
+import { Gauge } from '@/ui/Gauge';
+import { Notice } from '@/ui/Notice';
+import u from '@/ui/screens.module.css';
+import { Shell } from '@/ui/Shell';
+import { Slip } from '@/ui/Slip';
 
 type Sending = { step: 'idle' } | { step: 'sending' } | { step: 'confirmed'; owed: bigint } | { step: 'pending' } | { step: 'error'; message: string };
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const units = (n: bigint) => Number(n) / 10_000_000;
 
 export default function PayFlow() {
   const id = useSearchParams().get('s');
@@ -82,70 +88,94 @@ export default function PayFlow() {
   const over = review?.ok ? amount > review.tab.headroom : false;
 
   return (
-    <main className={s.page}>
-      <header className={s.header}>
-        <h1 className={s.title}>Confirm a purchase</h1>
-        <span className={s.tag}>Testnet only</span>
-      </header>
+    <Shell>
+      <div className={u.centre}>
+        {loadError && (
+          <Notice tone="problem" data-testid="pay-error">
+            {loadError}
+          </Notice>
+        )}
+        {!loadError && !offer && <p>Loading…</p>}
 
-      {loadError && <p role="alert" data-testid="pay-error" className={s.problem}>{loadError}</p>}
-      {!loadError && !offer && <p>Loading…</p>}
+        {offer && custody.status === 'none' && (
+          <Notice tone="problem" data-testid="pay-nokey">
+            There is no Fiado account on this device. <Link href="/c">Set one up</Link>, then join this shop with its join code.
+          </Notice>
+        )}
 
-      {offer && custody.status === 'none' && (
-        <p role="alert" data-testid="pay-nokey" className={s.problem}>
-          There is no Fiado account on this device. <Link href="/c">Set one up</Link>, then join this shop with its join code.
-        </p>
-      )}
+        {offer && custody.status === 'locked' && (
+          <Slip title="Unlock to continue">
+            <Button variant="primary" data-testid="unlock-customer" busy={custody.busy} onClick={() => void custody.unlock()}>
+              Unlock with passkey
+            </Button>
+            {custody.error && <Notice tone="problem">{custody.error}</Notice>}
+          </Slip>
+        )}
 
-      {offer && custody.status === 'locked' && (
-        <div className={s.card}>
-          <p>Unlock your key to continue.</p>
-          <button type="button" className={s.button} data-testid="unlock-customer" disabled={custody.busy} onClick={() => void custody.unlock()}>
-            Unlock with passkey
-          </button>
-          {custody.error && <p role="alert" className={s.problem}>{custody.error}</p>}
-        </div>
-      )}
+        {offer && review && !review.ok && (
+          <Notice tone="problem" data-testid="pay-blocked">
+            {review.reason}
+          </Notice>
+        )}
 
-      {offer && review && !review.ok && <p role="alert" data-testid="pay-blocked" className={s.problem}>{review.reason}</p>}
-
-      {offer && review?.ok && sending.step === 'idle' && (
-        <section className={s.card} data-testid="pay-card">
-          <h2>{review.shopName ?? shortKey(offer.shop)}</h2>
-          <p>
-            <strong data-testid="pay-item">{offer.item}</strong>
-            <br />
-            <span data-testid="pay-amount">{formatAmount(amount, offer.currency)}</span>
-            {offer.due ? ` · due ${formatDate(offer.due)}` : ''}
-          </p>
-          <p className={s.muted}>
-            Signing adds {formatAmount(amount, offer.currency)} to your tab here. Your tab is now {formatAmount(review.tab.owed, review.tab.currency)} of{' '}
-            {formatAmount(review.tab.limit, review.tab.currency)}.
-          </p>
-          {over && (
-            <p data-testid="pay-over-limit" className={s.problem}>
-              This is over your limit by {formatAmount(amount - review.tab.headroom, offer.currency)}. The network will refuse it and nothing will be added.
+        {offer && review?.ok && sending.step === 'idle' && (
+          <Slip title={review.shopName ?? shortKey(offer.shop)} data-testid="pay-card">
+            <div className={u.terms}>
+              <p className={u.termsItem} data-testid="pay-item">
+                {offer.item}
+              </p>
+              <p className={u.termsAmount} data-testid="pay-amount">
+                {formatAmount(amount, offer.currency)}
+              </p>
+              {offer.due && <p className={u.meta}>due {formatDate(offer.due)}</p>}
+            </div>
+            <Gauge
+              owed={units(review.tab.owed)}
+              limit={units(review.tab.limit)}
+              attempt={units(amount)}
+              label={`Your tab is ${formatAmount(review.tab.owed, review.tab.currency)} of a ${formatAmount(review.tab.limit, review.tab.currency)} limit. This purchase would add ${formatAmount(amount, offer.currency)}.`}
+            />
+            <p className={u.meta}>
+              Signing adds {formatAmount(amount, offer.currency)} to your tab here. Your tab is now {formatAmount(review.tab.owed, review.tab.currency)} of{' '}
+              {formatAmount(review.tab.limit, review.tab.currency)}.
             </p>
-          )}
-          <button type="button" className={s.button} data-testid="sign-purchase" onClick={() => void sign()}>
-            Sign
-          </button>
-        </section>
-      )}
+            {over && (
+              <Notice tone="problem" data-testid="pay-over-limit">
+                This is over your limit by {formatAmount(amount - review.tab.headroom, offer.currency)}. The network will refuse it and nothing will be added.
+              </Notice>
+            )}
+            <div className={u.actions}>
+              <Button variant="primary" data-testid="sign-purchase" onClick={() => void sign()}>
+                Sign
+              </Button>
+            </div>
+          </Slip>
+        )}
 
-      {sending.step === 'sending' && <p role="status" data-testid="pay-sending" className={s.notice}>Signing…</p>}
-      {sending.step === 'confirmed' && offer && (
-        <section role="status" data-testid="pay-confirmed" className={s.notice}>
-          <p>Recorded. Your tab here is now {formatAmount(sending.owed, offer.currency)}.</p>
-          <Link href="/c">See my tabs</Link>
-        </section>
-      )}
-      {sending.step === 'pending' && (
-        <p role="status" data-testid="pay-pending" className={s.notice}>
-          Sent to the shop. If your tab does not change, the shop’s screen will say why, for example that it was over your limit.
-        </p>
-      )}
-      {sending.step === 'error' && <p role="alert" data-testid="pay-failed" className={s.problem}>{sending.message}</p>}
-    </main>
+        {sending.step === 'sending' && (
+          <Notice tone="pending" data-testid="pay-sending">
+            Signing…
+          </Notice>
+        )}
+        {sending.step === 'confirmed' && offer && (
+          <Notice tone="ok" data-testid="pay-confirmed">
+            <p>Recorded. Your tab here is now {formatAmount(sending.owed, offer.currency)}.</p>
+            <Link {...buttonStyle('secondary')} href="/c">
+              See my tabs
+            </Link>
+          </Notice>
+        )}
+        {sending.step === 'pending' && (
+          <Notice tone="pending" data-testid="pay-pending">
+            Sent to the shop. If your tab does not change, the shop’s screen will say why, for example that it was over your limit.
+          </Notice>
+        )}
+        {sending.step === 'error' && (
+          <Notice tone="problem" data-testid="pay-failed">
+            {sending.message}
+          </Notice>
+        )}
+      </div>
+    </Shell>
   );
 }

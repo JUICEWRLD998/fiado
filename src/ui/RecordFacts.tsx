@@ -3,7 +3,7 @@
 import type { RecordSummary } from '../book';
 import { formatAmount, shortKey } from '../client/format';
 import type { ShopProfiles } from '../client/reads';
-import s from './ui.module.css';
+import s from './screens.module.css';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
@@ -13,17 +13,19 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
  */
 export function RecordFacts({ record, shops }: { record: RecordSummary; shops: ShopProfiles }) {
   if (record.purchases === 0) {
-    return <p data-testid="record-facts" className={s.muted}>No history yet. This is a first visit.</p>;
+    return (
+      <p data-testid="record-facts" className={s.meta}>
+        No history yet. This is a first visit.
+      </p>
+    );
   }
   const days = record.medianDaysToRepay;
   return (
-    <div data-testid="record-facts">
-      <p>
-        <strong data-testid="record-purchases">
-          {plural(record.purchases, 'purchase', 'purchases')} at {plural(record.shops, 'shop', 'shops')}
-        </strong>
+    <div data-testid="record-facts" className={s.facts}>
+      <p className={s.factsHead} data-testid="record-purchases">
+        {plural(record.purchases, 'purchase', 'purchases')} at {plural(record.shops, 'shop', 'shops')}
       </p>
-      <ul>
+      <ul className={s.factList}>
         <li>
           {record.settled} paid off
           {days !== null ? `, usually in ${plural(days, 'day', 'days')}` : ''}
@@ -33,21 +35,20 @@ export function RecordFacts({ record, shops }: { record: RecordSummary; shops: S
             {record.onTime} paid by the due date, {record.late} after it
           </li>
         )}
-        {record.overdueNow > 0 && <li>{record.overdueNow} past due now</li>}
+        {record.overdueNow > 0 && <li className={s.late}>{record.overdueNow} past due now</li>}
         {record.writtenOff > 0 && <li>{record.writtenOff} written off by the shop</li>}
       </ul>
-      <h3 className={s.muted} style={{ margin: '12px 0 4px' }}>By shop</h3>
-      <ul className={s.list}>
+      <ul className={s.byShop}>
         {record.perShop.map((p) => {
           const shop = shops[p.shop];
           const cur = shop?.currency ?? '₦';
           return (
             <li key={p.shop} data-testid="record-shop">
               <span className={s.name}>{shop?.name ?? shortKey(p.shop)}</span>
-              <div className={s.muted}>
+              <p className={s.meta}>
                 {plural(p.purchases, 'purchase', 'purchases')} · bought {formatAmount(p.issued, cur)} · paid {formatAmount(p.repaid, cur)}
                 {p.forgiven > 0n ? ` · written off ${formatAmount(p.forgiven, cur)}` : ''} · open {formatAmount(p.open, cur)}
-              </div>
+              </p>
             </li>
           );
         })}

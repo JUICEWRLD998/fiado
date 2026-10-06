@@ -2,48 +2,53 @@
 
 import { EXPLORER_TX } from '../chain/config';
 import type { ShopFlowState } from '../client/flows';
+import { formatAmount } from '../client/format';
+import { Button } from './Button';
+import { Notice } from './Notice';
 import { Qr } from './Qr';
 import { RecordFacts } from './RecordFacts';
-import s from './ui.module.css';
+import { RefusalMoment } from './RefusalMoment';
+import s from './screens.module.css';
+
+/** What the refused purchase was up against: shown as the gauge in the signature moment. */
+export type RefusalContext = { owed: bigint; limit: bigint; attempt: bigint; currency: string };
 
 /** Renders whatever a shop-side interaction has reached: the code to show, a decision to make, or how it ended. */
-export function FlowView({ state, onClose }: { state: ShopFlowState | null; onClose: () => void }) {
+export function FlowView({ state, onClose, refusal }: { state: ShopFlowState | null; onClose: () => void; refusal?: RefusalContext }) {
   if (!state) return null;
 
   if (state.step === 'link') {
     return (
-      <div className={s.qrBox} data-testid="flow-waiting">
+      <div className={s.qr} data-testid="flow-waiting">
         <Qr value={state.link} />
-        <a data-testid="flow-link" className={s.link} href={state.link} target="_blank" rel="noreferrer">
+        <a data-testid="flow-link" className={s.qrLink} href={state.link} target="_blank" rel="noreferrer">
           {state.link}
         </a>
-        <p data-testid="flow-status" role="status" className={s.muted}>
+        <Notice tone="pending" data-testid="flow-status">
           {state.status}
-        </p>
-        <button type="button" className={s.ghost} onClick={onClose}>
+        </Notice>
+        <Button variant="quiet" onClick={onClose}>
           Cancel
-        </button>
+        </Button>
       </div>
     );
   }
 
   if (state.step === 'review_customer') {
     return (
-      <div data-testid="review-customer">
-        <h3 style={{ margin: '0 0 8px' }}>{state.name} wants a credit line</h3>
-        {state.existing ? (
-          <p className={s.muted}>They already use Fiado. Their record, read from the public ledger:</p>
-        ) : (
-          <p className={s.muted}>This is their first time on Fiado.</p>
-        )}
+      <div data-testid="review-customer" className={s.stack}>
+        <h3 className={s.name}>{state.name} wants a credit line</h3>
+        <p className={s.meta}>
+          {state.existing ? 'They already use Fiado. Their record, read from the public ledger:' : 'This is their first time on Fiado.'}
+        </p>
         {state.record && <RecordFacts record={state.record} shops={state.shops} />}
         <div className={s.actions}>
-          <button type="button" className={s.button} data-testid="approve-customer" onClick={state.approve}>
+          <Button variant="primary" data-testid="approve-customer" onClick={state.approve}>
             Open their line
-          </button>
-          <button type="button" className={s.ghost} data-testid="decline-customer" onClick={state.decline}>
+          </Button>
+          <Button variant="quiet" data-testid="decline-customer" onClick={state.decline}>
             Not now
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -51,38 +56,63 @@ export function FlowView({ state, onClose }: { state: ShopFlowState | null; onCl
 
   const explorer = 'hash' in state && state.hash ? `${EXPLORER_TX}${state.hash}` : null;
   const close = (
-    <button type="button" className={s.ghost} onClick={onClose}>
+    <Button variant="quiet" onClick={onClose}>
       Close
-    </button>
+    </Button>
   );
 
   if (state.step === 'done') {
     return (
       <div>
-        <p data-testid="flow-done" role="status" className={s.notice}>
+        <Notice tone="ok" data-testid="flow-done">
           {state.message}{' '}
           {explorer && (
             <a href={explorer} target="_blank" rel="noreferrer" data-testid="flow-explorer">
               View on the ledger
             </a>
           )}
-        </p>
+        </Notice>
         {close}
       </div>
     );
   }
 
   if (state.step === 'refused') {
+    const link = explorer && (
+      <>
+        {' '}
+        <a href={explorer} target="_blank" rel="noreferrer" data-testid="flow-explorer">
+          Look it up on the ledger
+        </a>
+      </>
+    );
+    // the signature moment, when we know the numbers: the over-limit refusal, shown on the gauge
+    if (state.overLimit && refusal) {
+      const num = (n: bigint) => Number(n) / 10_000_000;
+      const room = refusal.limit > refusal.owed ? refusal.limit - refusal.owed : 0n;
+      const over = refusal.attempt > room ? refusal.attempt - room : 0n;
+      return (
+        <div data-testid="flow-refused" className={s.stack}>
+          <RefusalMoment
+            owed={num(refusal.owed)}
+            limit={num(refusal.limit)}
+            attempt={num(refusal.attempt)}
+            label={`${formatAmount(refusal.owed, refusal.currency)} owed of a ${formatAmount(refusal.limit, refusal.currency)} limit. A purchase of ${formatAmount(refusal.attempt, refusal.currency)} was refused.`}
+            figures={`Owed ${formatAmount(refusal.owed, refusal.currency)} · limit ${formatAmount(refusal.limit, refusal.currency)} · tried ${formatAmount(refusal.attempt, refusal.currency)}, ${formatAmount(over, refusal.currency)} over`}
+            sentence={state.message}
+          >
+            {link}
+          </RefusalMoment>
+          {close}
+        </div>
+      );
+    }
     return (
       <div>
-        <p data-testid="flow-refused" role="alert" className={s.problem}>
-          {state.message}{' '}
-          {explorer && (
-            <a href={explorer} target="_blank" rel="noreferrer" data-testid="flow-explorer">
-              Look it up on the ledger
-            </a>
-          )}
-        </p>
+        <Notice tone="problem" data-testid="flow-refused">
+          {state.message}
+          {link}
+        </Notice>
         {close}
       </div>
     );
@@ -91,9 +121,9 @@ export function FlowView({ state, onClose }: { state: ShopFlowState | null; onCl
   if (state.step === 'expired') {
     return (
       <div>
-        <p data-testid="flow-expired" role="alert" className={s.problem}>
+        <Notice tone="problem" data-testid="flow-expired">
           This code expired before it was used. Nothing was changed. Start again.
-        </p>
+        </Notice>
         {close}
       </div>
     );
@@ -101,9 +131,9 @@ export function FlowView({ state, onClose }: { state: ShopFlowState | null; onCl
 
   return (
     <div>
-      <p data-testid="flow-failed" role="alert" className={s.problem}>
+      <Notice tone="problem" data-testid="flow-failed">
         {state.message}
-      </p>
+      </Notice>
       {close}
     </div>
   );
