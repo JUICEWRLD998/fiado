@@ -3,14 +3,15 @@
 // (what gets verified, who signs, what is refused) lives here and in verify.ts, not in a component.
 
 import type { FeeBumpTransaction, Keypair, Transaction } from '@stellar/stellar-sdk';
-import { toStroops } from '../chain/amount';
-import { buyOnCredit, feeBump, joinAndOpen, openCredit, repayCash, setupShop } from '../chain/builders';
+import type { RecordSummary } from '../book';
+import { fromStroops, toStroops } from '../chain/amount';
+import { buyOnCredit, closeCredit, feeBump, joinAndOpen, openCredit, repayCash, setLimit, setupShop } from '../chain/builders';
 import { accountExists, ChainRefusal, readProfile, server, submit } from '../chain/horizon';
 import type { BuyOffer, JoinOffer, SessionView } from '../handoff/session';
 import { verifyJoin, verifyPurchase } from '../handoff/verify';
 import { explainRefusal } from './explain';
 import { createSession, HandoffError, readSession, sessionLink, waitFor, writeSlot, type Waited } from './handoff';
-import { loadTabs, type Tab } from './reads';
+import { loadRecord, loadShopProfiles, loadTabs, type ShopProfiles, type Tab } from './reads';
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const xdrOf = (tx: Transaction | FeeBumpTransaction) => tx.toEnvelope().toXDR('base64');
@@ -26,6 +27,8 @@ export function messageOf(e: unknown): string {
 
 export type ShopFlowState =
   | { step: 'link'; link: string; status: string }
+  /** The customer said hello. The shopkeeper sees their record and decides before anything is built. */
+  | { step: 'review_customer'; name: string; existing: boolean; record: RecordSummary | null; shops: ShopProfiles; approve: () => void; decline: () => void }
   | { step: 'done'; hash: string; message: string }
   | { step: 'refused'; hash: string | null; message: string; overLimit: boolean }
   | { step: 'failed'; message: string }
@@ -66,9 +69,23 @@ export async function runJoin(
 
   const hello = settle(await waitFor(made.id, (s) => s.hello, { signal }), emit);
   if (!hello) return;
-  emit({ step: 'link', link, status: `${hello.name} is here. Preparing their credit line…` });
-
   const existing = await accountExists(hello.pub);
+  const history = existing ? await loadRecord(hello.pub).catch(() => null) : null;
+  const shops = history ? await loadShopProfiles(history.perShop.map((s) => s.shop)).catch(() => ({})) : {};
+  const decision = await new Promise<'yes' | 'no'>((resolve) => {
+    if (signal.aborted) {
+      resolve('no');
+      return;
+    }
+    signal.addEventListener('abort', () => resolve('no'), { once: true });
+    emit({ step: 'review_customer', name: hello.name, existing, record: history, shops, approve: () => resolve('yes'), decline: () => resolve('no') });
+  });
+  if (decision === 'no') {
+    if (!signal.aborted) emit({ step: 'failed', message: `${hello.name} was not added. Their code expires on its own.` });
+    return;
+  }
+  emit({ step: 'link', link, status: `Preparing ${hello.name}’s credit line…` });
+
   const acct = await server.loadAccount(shop);
   const tx = existing
     ? openCredit({ shop: acct, customer: hello.pub, limit: p.limit })
@@ -117,6 +134,20 @@ export async function runSale(
 /** The shop returns the customer's IOU to them (a cash repayment), or writes the debt off. */
 export async function repay(kp: Keypair, p: { customer: string; amount: string; kind?: 'cash' | 'forgiven' }): Promise<string> {
   const tx = repayCash({ shop: await server.loadAccount(kp.publicKey()), customer: p.customer, amount: p.amount, kind: p.kind });
+  tx.sign(kp);
+  return (await submit(tx)).hash;
+}
+
+/** Change a customer's credit limit. Refused here, with the reason, if it would sit below what is owed. */
+export async function changeLimit(kp: Keypair, p: { customer: string; limit: string; owed: bigint }): Promise<string> {
+  const tx = setLimit({ shop: await server.loadAccount(kp.publicKey()), customer: p.customer, limit: p.limit, owed: fromStroops(p.owed) });
+  tx.sign(kp);
+  return (await submit(tx)).hash;
+}
+
+/** Close a settled line: it disappears from the book, and the customer's record keeps the history. */
+export async function closeLine(kp: Keypair, p: { customer: string; owed: bigint }): Promise<string> {
+  const tx = closeCredit({ shop: await server.loadAccount(kp.publicKey()), customer: p.customer, owed: fromStroops(p.owed) });
   tx.sign(kp);
   return (await submit(tx)).hash;
 }

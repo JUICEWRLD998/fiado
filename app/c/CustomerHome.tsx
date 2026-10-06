@@ -1,14 +1,17 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { RecordSummary } from '@/book';
 import { cleanName } from '@/chain/profile';
 import { messageOf } from '@/client/flows';
 import { formatAmount, shortKey } from '@/client/format';
-import { loadRecord, loadTabs, type Tab } from '@/client/reads';
+import { loadRecord, loadShopProfiles, loadTabs, type ShopProfiles, type Tab } from '@/client/reads';
+import { whatsappLink } from '@/client/remind';
 import { useCustody, type Custody } from '@/client/useCustody';
 import type { Mode } from '@/passkey/custody';
 import { KeyChoice } from '@/ui/KeyChoice';
+import { RecordFacts } from '@/ui/RecordFacts';
 import s from '@/ui/ui.module.css';
 
 export default function CustomerHome() {
@@ -74,23 +77,24 @@ function Locked({ custody }: { custody: Custody }) {
   );
 }
 
-function Tabs({ custody, pub }: { custody: Custody; pub: string }) {
-  const [tabs, setTabs] = useState<Tab[] | null>(null);
-  const [rec, setRec] = useState<RecordSummary | null>(null);
+type Loaded = { tabs: Tab[]; record: RecordSummary | null; shops: ShopProfiles };
 
-  const refresh = useCallback(async () => {
-    const [t, r] = await Promise.all([loadTabs(pub), loadRecord(pub)]);
-    setTabs(t);
-    setRec(r);
-  }, [pub]);
+async function loadAll(pub: string): Promise<Loaded> {
+  const [tabs, record] = await Promise.all([loadTabs(pub), loadRecord(pub)]);
+  const shops = record ? await loadShopProfiles(record.perShop.map((p) => p.shop)) : {};
+  return { tabs, record, shops };
+}
+
+function Tabs({ custody, pub }: { custody: Custody; pub: string }) {
+  const [data, setData] = useState<Loaded | null>(null);
+
+  const refresh = useCallback(async () => setData(await loadAll(pub)), [pub]);
 
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const [t, r] = await Promise.all([loadTabs(pub), loadRecord(pub)]);
-      if (!alive) return;
-      setTabs(t);
-      setRec(r);
+      const loaded = await loadAll(pub);
+      if (alive) setData(loaded);
     })();
     const timer = setInterval(() => void refresh(), 10_000);
     return () => {
@@ -98,6 +102,8 @@ function Tabs({ custody, pub }: { custody: Custody; pub: string }) {
       clearInterval(timer);
     };
   }, [pub, refresh]);
+
+  const shareOnWhatsApp = () => window.open(whatsappLink(`My Fiado record: ${window.location.origin}/record/${pub}`), '_blank', 'noopener');
 
   return (
     <main className={s.page} data-testid="customer-ready">
@@ -107,11 +113,11 @@ function Tabs({ custody, pub }: { custody: Custody; pub: string }) {
       </header>
 
       <h2>Open tabs</h2>
-      {tabs && tabs.length === 0 && (
+      {data && data.tabs.length === 0 && (
         <p className={s.muted} data-testid="tabs-empty">You have no tabs yet. When a shop gives you a join code, scan it or open its link.</p>
       )}
       <ul className={s.list}>
-        {tabs?.map((t) => (
+        {data?.tabs.map((t) => (
           <li key={t.shop} data-testid="tab-row">
             <div className={s.rowTop}>
               <span className={s.name} data-testid="tab-shop">{t.shopName ?? shortKey(t.shop)}</span>
@@ -124,17 +130,17 @@ function Tabs({ custody, pub }: { custody: Custody; pub: string }) {
         ))}
       </ul>
 
-      {rec && rec.purchases > 0 && (
+      {data?.record && data.record.purchases > 0 && (
         <section className={s.card} data-testid="record-summary" aria-labelledby="rec-title">
           <h2 id="rec-title">Your record</h2>
-          <p className={s.muted}>Facts any shop can check on the public ledger. It is not a score.</p>
-          <ul className={s.list} style={{ border: 0 }}>
-            <li style={{ border: 0, padding: 0 }}>
-              {rec.purchases} {rec.purchases === 1 ? 'purchase' : 'purchases'} at {rec.shops} {rec.shops === 1 ? 'shop' : 'shops'} · {rec.settled} paid off
-              {rec.medianDaysToRepay !== null ? ` (usually in ${rec.medianDaysToRepay} ${rec.medianDaysToRepay === 1 ? 'day' : 'days'})` : ''}
-              {rec.overdueNow > 0 ? ` · ${rec.overdueNow} past due` : ''}
-            </li>
-          </ul>
+          <p className={s.muted}>Facts any shop can check on the public ledger. It is not a score, and it is yours to share.</p>
+          <RecordFacts record={data.record} shops={data.shops} />
+          <div className={s.actions}>
+            <Link className={s.ghost} style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }} data-testid="my-record-link" href={`/record/${pub}`}>
+              Open my shareable record
+            </Link>
+            <button type="button" className={s.ghost} data-testid="share-record" onClick={shareOnWhatsApp}>Share on WhatsApp</button>
+          </div>
         </section>
       )}
     </main>
