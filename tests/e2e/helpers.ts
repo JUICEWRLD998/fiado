@@ -21,9 +21,11 @@ export async function passkeyDevice(context: BrowserContext, page: Page): Promis
 }
 
 /** A shopkeeper creates a shop and waits for it to be ready (key, test money, name on-chain). */
-export async function openShop(page: Page, name: string): Promise<void> {
+export async function openShop(page: Page, name: string, opts: { device?: boolean } = {}): Promise<void> {
   await page.goto('/shop');
   await page.getByTestId('shop-name').fill(name);
+  // a key kept in the browser, so the whole state can be saved and replayed (a virtual passkey cannot)
+  if (opts.device) await page.getByTestId('mode-device').check();
   await page.getByTestId('create-shop').click();
   await expect(page.getByTestId('shop-ready')).toBeVisible({ timeout: 150_000 });
   await expect(page.getByTestId('shop-title')).toHaveText(name);
@@ -42,8 +44,11 @@ export async function joinCustomer(p: {
   shopSees?: string;
   /** True when the customer already has an account and a passkey on this device. */
   returning?: boolean;
+  /** Keep the customer's key in the browser instead of a passkey. */
+  deviceKey?: boolean;
 }): Promise<string> {
   const { shop, customer } = p;
+  await shop.getByTestId('add-customer').click();
   await shop.getByTestId('join-limit').fill(p.limit);
   await shop.getByTestId('start-join').click();
   const link = await shop.getByTestId('flow-link').getAttribute('href');
@@ -51,6 +56,7 @@ export async function joinCustomer(p: {
 
   await customer.goto(link!);
   await customer.getByTestId('customer-name').fill(p.customerName);
+  if (p.deviceKey) await customer.getByTestId('mode-device').check();
   await customer.getByTestId('join-button').click();
 
   await expect(shop.getByTestId('review-customer')).toBeVisible({ timeout: 90_000 });
@@ -66,4 +72,18 @@ export async function joinCustomer(p: {
   const tx = (await shop.getByTestId('flow-explorer').getAttribute('href')) ?? '';
   await shop.getByRole('button', { name: 'Close' }).click();
   return tx;
+}
+
+export async function sellOnCredit(p: { shop: Page; customer: Page; name: string; item: string; amount: string; unlock?: boolean }): Promise<void> {
+  const row = p.shop.getByTestId("book-row").filter({ hasText: p.name });
+  await row.getByTestId("open-sale").click();
+  await row.getByTestId("item").fill(p.item);
+  await row.getByTestId("amount").fill(p.amount);
+  await row.getByTestId("show-sale-code").click();
+  const link = await row.getByTestId("flow-link").getAttribute("href");
+  await p.customer.goto(link!);
+  if (p.unlock) await p.customer.getByTestId("unlock-customer").click();
+  await p.customer.getByTestId("sign-purchase").click();
+  await expect(row.getByTestId("flow-done")).toBeVisible({ timeout: 90_000 });
+  await row.getByRole("button", { name: "Close" }).click();
 }
