@@ -28,7 +28,7 @@ export type EnvelopeCheck = { hash: string; ok: boolean; problems: string[] };
 const toHex = (bytes: Uint8Array) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 
 /** Does any signature on this level verify, under `hash`, for `publicKey`? */
-function signedBy(publicKey: string, hash: Uint8Array, signatures: { signature: { value: Uint8Array } }[]): boolean {
+export function signedBy(publicKey: string, hash: Uint8Array, signatures: { signature: { value: Uint8Array } }[]): boolean {
   let kp: Keypair;
   try {
     kp = Keypair.fromPublicKey(publicKey);
