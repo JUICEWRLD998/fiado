@@ -2,14 +2,15 @@
 
 import type { Keypair } from '@stellar/stellar-sdk';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import type { BookRow } from '@/book';
+import { todayUtc, type BookRow } from '@/book';
 import { toStroops } from '@/chain/amount';
-import { encodeNote } from '@/chain/memo';
 import { readProfile } from '@/chain/horizon';
+import { encodeNote } from '@/chain/memo';
 import { cleanCurrency, cleanName } from '@/chain/profile';
-import { messageOf, repay, runJoin, runSale, setupShopAccount, type ShopFlowState } from '@/client/flows';
+import { changeLimit, closeLine, messageOf, repay, runJoin, runSale, setupShopAccount, type ShopFlowState } from '@/client/flows';
 import { daysFromNow, formatAmount, formatDate, parseMoney, shortKey } from '@/client/format';
 import { loadBook, type ShopBook } from '@/client/reads';
+import { reminderText, whatsappLink } from '@/client/remind';
 import { useCustody, type Custody } from '@/client/useCustody';
 import { useFlow } from '@/client/useFlow';
 import type { Mode } from '@/passkey/custody';
@@ -111,13 +112,15 @@ function Ready({ custody, kp }: { custody: Custody; kp: Keypair }) {
   const [problem, setProblem] = useState<string | null>(null);
   const [data, setData] = useState<ShopBook | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
+  const [lastRead, setLastRead] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       setData(await loadBook(pub));
       setReadError(null);
+      setLastRead(new Date().toISOString().slice(11, 19));
     } catch (e) {
-      setReadError(messageOf(e));
+      setReadError(messageOf(e)); // keep showing what we last read, and say so
     }
   }, [pub]);
 
@@ -161,6 +164,7 @@ function Ready({ custody, kp }: { custody: Custody; kp: Keypair }) {
   }, [phase, refresh]);
 
   const currency = data?.currency ?? meta?.currency ?? CURRENCIES[0]!;
+  const shopName = data?.shopName ?? meta?.name ?? 'My shop';
 
   if (phase === 'checking' || phase === 'setup') {
     return (
@@ -183,21 +187,28 @@ function Ready({ custody, kp }: { custody: Custody; kp: Keypair }) {
   return (
     <main className={s.page} data-testid="shop-ready">
       <header className={s.header}>
-        <h1 className={s.title} data-testid="shop-title">{data?.shopName ?? meta?.name ?? 'Your shop'}</h1>
+        <h1 className={s.title} data-testid="shop-title">{shopName}</h1>
         <span className={s.tag}>Testnet · {shortKey(pub)}</span>
       </header>
 
-      <AddCustomer kp={kp} currency={currency} shopName={data?.shopName ?? meta?.name ?? 'My shop'} onDone={refresh} />
+      <AddCustomer kp={kp} currency={currency} shopName={shopName} onDone={refresh} />
 
       <h2>Your book</h2>
-      {readError && <p role="alert" className={s.problem}>Could not read the book: {readError}</p>}
+      {readError && (
+        <p role="alert" data-testid="read-error" className={s.problem}>
+          Could not read the latest ({readError}). {data ? 'Showing what was last read.' : ''}
+        </p>
+      )}
       {data && data.book.rows.length === 0 && <p className={s.muted} data-testid="book-empty">No customers yet. Add your first customer above.</p>}
       <ul className={s.list} data-testid="book">
         {data?.book.rows.map((row) => (
-          <Customer key={row.customer} kp={kp} row={row} currency={currency} onDone={refresh} />
+          <Customer key={row.customer} kp={kp} row={row} currency={currency} shopName={shopName} onDone={refresh} />
         ))}
       </ul>
-      <button type="button" className={s.ghost} data-testid="refresh" onClick={() => void refresh()}>Refresh</button>
+      <div className={s.actions}>
+        <button type="button" className={s.ghost} data-testid="refresh" onClick={() => void refresh()}>Refresh</button>
+        {lastRead && <span className={s.muted} data-testid="last-read">Updated {lastRead} UTC</span>}
+      </div>
     </main>
   );
 }
@@ -241,9 +252,14 @@ function AddCustomer({ kp, currency, shopName, onDone }: { kp: Keypair; currency
   );
 }
 
-function Customer({ kp, row, currency, onDone }: { kp: Keypair; row: BookRow; currency: string; onDone: () => Promise<void> }) {
-  const [open, setOpen] = useState<'sale' | 'repay' | null>(null);
+type Panel = 'sale' | 'repay' | 'limit' | 'writeoff' | 'close' | null;
+
+function Customer({ kp, row, currency, shopName, onDone }: { kp: Keypair; row: BookRow; currency: string; shopName: string; onDone: () => Promise<void> }) {
+  const [open, setOpen] = useState<Panel>(null);
   const oldest = row.oldestUnpaid;
+  const toggle = (p: Exclude<Panel, null>) => setOpen(open === p ? null : p);
+  const reminder = reminderText({ shopName, row, currency, today: todayUtc() });
+
   return (
     <li data-testid="book-row">
       <div className={s.row}>
@@ -264,12 +280,129 @@ function Customer({ kp, row, currency, onDone }: { kp: Keypair; row: BookRow; cu
         {!row.explained && <div className={s.muted}>Some of this customer’s history is missing. The balance shown is what the network holds.</div>}
       </div>
       <div className={s.actions}>
-        <button type="button" className={s.ghost} data-testid="open-sale" onClick={() => setOpen(open === 'sale' ? null : 'sale')}>New purchase</button>
-        <button type="button" className={s.ghost} data-testid="open-repay" onClick={() => setOpen(open === 'repay' ? null : 'repay')}>Cash repayment</button>
+        <button type="button" className={s.ghost} data-testid="open-sale" onClick={() => toggle('sale')}>New purchase</button>
+        <button type="button" className={s.ghost} data-testid="open-repay" onClick={() => toggle('repay')}>Cash repayment</button>
+        {reminder && (
+          <a className={s.ghost} style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }} data-testid="remind" href={whatsappLink(reminder)} target="_blank" rel="noreferrer">
+            Remind on WhatsApp
+          </a>
+        )}
+        <details>
+          <summary className={s.ghost} style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }} data-testid="open-more">More</summary>
+          <div className={s.actions}>
+            <button type="button" className={s.ghost} data-testid="open-limit" onClick={() => toggle('limit')}>Change limit</button>
+            <button type="button" className={s.ghost} data-testid="open-writeoff" onClick={() => toggle('writeoff')}>Write off</button>
+            <button type="button" className={s.ghost} data-testid="open-close" onClick={() => toggle('close')}>Close line</button>
+          </div>
+        </details>
       </div>
       {open === 'sale' && <SalePanel kp={kp} row={row} currency={currency} onDone={onDone} />}
       {open === 'repay' && <RepayPanel kp={kp} row={row} currency={currency} onDone={onDone} />}
+      {open === 'limit' && (
+        <ActionPanel
+          testid="limit"
+          id={`limit-${row.customer}`}
+          label={`New limit (${currency})`}
+          initial=""
+          button="Change limit"
+          hint={`They owe ${formatAmount(row.owed, currency)} now, so the limit cannot go lower than that.`}
+          run={async (v) => {
+            const limit = parseMoney(v);
+            if (!limit) throw new Error('Enter a limit like 10000.');
+            await changeLimit(kp, { customer: row.customer, limit, owed: row.owed });
+            await onDone();
+            return `The limit is now ${formatAmount(toStroops(limit), currency)}.`;
+          }}
+        />
+      )}
+      {open === 'writeoff' && (
+        <ActionPanel
+          testid="writeoff"
+          id={`writeoff-${row.customer}`}
+          label={`Amount to write off (${currency})`}
+          button="Write off"
+          hint="You are choosing not to collect this. It stays on their record as written off, never as paid."
+          run={async (v) => {
+            const amount = parseMoney(v);
+            if (!amount) throw new Error('Enter an amount like 200.');
+            if (toStroops(amount) > row.owed) throw new Error(`They only owe ${formatAmount(row.owed, currency)}.`);
+            await repay(kp, { customer: row.customer, amount, kind: 'forgiven' });
+            await onDone();
+            return `Wrote off ${formatAmount(toStroops(amount), currency)}.`;
+          }}
+        />
+      )}
+      {open === 'close' && (
+        <ActionPanel
+          testid="close"
+          id={`close-${row.customer}`}
+          button="Close this line"
+          hint="Only a settled line can be closed. The customer keeps their history."
+          run={async () => {
+            if (row.owed !== 0n) throw new Error('Settle what is owed first: record the cash received, or write it off.');
+            await closeLine(kp, { customer: row.customer, owed: row.owed });
+            await onDone();
+            return 'The line is closed.';
+          }}
+        />
+      )}
     </li>
+  );
+}
+
+/** One small form: an optional field, a button, and the outcome in words. */
+function ActionPanel({
+  testid,
+  id,
+  label,
+  initial = '',
+  button,
+  hint,
+  run,
+}: {
+  testid: string;
+  id: string;
+  label?: string;
+  initial?: string;
+  button: string;
+  hint?: string;
+  run: (value: string) => Promise<string>;
+}) {
+  const [value, setValue] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setResult(null);
+    try {
+      setResult({ ok: true, text: await run(value) });
+    } catch (err) {
+      setResult({ ok: false, text: messageOf(err) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className={s.card} style={{ marginTop: 12 }} onSubmit={submit}>
+      {hint && <p className={s.muted}>{hint}</p>}
+      {label && (
+        <div className={s.field}>
+          <label htmlFor={id}>{label}</label>
+          <input id={id} data-testid={`${testid}-input`} inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} />
+        </div>
+      )}
+      <button type="submit" className={s.button} data-testid={`${testid}-submit`} disabled={busy}>
+        {busy ? 'Working…' : button}
+      </button>
+      {result && (
+        <p role={result.ok ? 'status' : 'alert'} data-testid={`${testid}-result`} className={result.ok ? s.notice : s.problem}>
+          {result.text}
+        </p>
+      )}
+    </form>
   );
 }
 
@@ -292,6 +425,10 @@ function SalePanel({ kp, row, currency, onDone }: { kp: Keypair; row: BookRow; c
     e.preventDefault();
     if (!parsed) {
       setProblem('Enter an amount like 3200 or 3200.50.');
+      return;
+    }
+    if (due && due < todayUtc()) {
+      setProblem('The due date cannot be in the past.');
       return;
     }
     try {
