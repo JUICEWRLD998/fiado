@@ -3,7 +3,15 @@
   "version": "1.0.0",
   "description": "The credit book the network keeps: shop credit lines as Stellar trustline limits (testnet)",
   "scripts": {
-    "spike": "node scripts/spike.mjs"
+    "spike": "node scripts/spike.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:testnet": "vitest run --mode testnet",
+    "e2e": "playwright test"
   },
   "repository": {
     "type": "git",
@@ -19,6 +27,20 @@
   "homepage": "https://github.com/JUICEWRLD998/fiado#readme",
   "private": true,
   "dependencies": {
-    "@stellar/stellar-sdk": "^17.2.1"
+    "@stellar/stellar-sdk": "^17.2.1",
+    "motion": "^14.0.0",
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.3.8",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
   }
 }

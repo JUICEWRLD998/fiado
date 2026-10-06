@@ -1,0 +1,25 @@
+.main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-3);
+}
+
+.title {
+  font-size: 2.25rem;
+  margin: 0;
+}
+
+.lede {
+  color: var(--ink-soft);
+  margin-top: var(--space-1);
+}
+
+.status {
+  border-left: 3px solid var(--margin);
+  padding-left: var(--space-3);
+  color: var(--ink-soft);
+}
+
+.status a {
+  color: inherit;
+}
