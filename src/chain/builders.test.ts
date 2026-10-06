@@ -1,4 +1,4 @@
-import { Account, Asset, AuthRequiredFlag, Keypair, Memo, type Transaction } from '@stellar/stellar-sdk';
+import { Account, Asset, AuthRequiredFlag, Keypair, type Transaction } from '@stellar/stellar-sdk';
 import { describe, expect, it } from 'vitest';
 import {
   buyOnCredit,
@@ -22,6 +22,8 @@ const custAcct = () => new Account(CUST, '200');
 
 // op type + source (null = tx source) for each op, the shape every rule below is checked against.
 const shape = (tx: Transaction) => tx.operations.map((o) => [o.type, o.source ?? null]);
+// SDK v17 returns a built text memo as bytes, so decode before comparing.
+const memoText = (tx: Transaction) => new TextDecoder().decode(tx.memo.value as Uint8Array);
 
 describe('joinCustomer', () => {
   const tx = joinCustomer({ shop: shopAcct(), customer: CUST });
@@ -81,7 +83,7 @@ describe('buyOnCredit + feeBump', () => {
 
   it('carries the item and due date in the memo', () => {
     expect(inner.memo.type).toBe('text');
-    expect(inner.memo.value?.toString()).toBe('Rice 2 bags|261020');
+    expect(memoText(inner)).toBe('Rice 2 bags|261020');
   });
 
   it('is fee-bumped by the shop, so the customer pays nothing', () => {
@@ -98,12 +100,12 @@ describe('repayments', () => {
     expect(tx.source).toBe(SHOP);
     expect(pay.destination).toBe(CUST);
     expect(pay.asset.equals(fiadoOf(CUST))).toBe(true);
-    expect(tx.memo.value?.toString()).toBe('cash');
+    expect(memoText(tx)).toBe('cash');
   });
 
   it('forgiveness is a repay with memo "forgiven"', () => {
     const tx = repayCash({ shop: shopAcct(), customer: CUST, amount: '200', kind: 'forgiven' });
-    expect(tx.memo.value?.toString()).toBe('forgiven');
+    expect(memoText(tx)).toBe('forgiven');
   });
 
   it('dollar repay puts the dollar leg first and the burn second, in one tx', () => {
@@ -115,7 +117,7 @@ describe('repayments', () => {
     ]);
     expect((tx.operations[0] as { asset: Asset }).asset.equals(usd)).toBe(true);
     expect((tx.operations[1] as { asset: Asset }).asset.equals(fiadoOf(CUST))).toBe(true);
-    expect(tx.memo).toEqual(Memo.text('dollars'));
+    expect(memoText(tx)).toBe('dollars');
   });
 });
 
