@@ -10,7 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:testnet": "vitest run --mode testnet",
+    "test:testnet": "vitest run --mode testnet --silent=false",
     "e2e": "playwright test"
   },
   "repository": {

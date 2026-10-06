@@ -35,9 +35,20 @@ export async function submit(tx: Transaction | FeeBumpTransaction): Promise<{ ha
   }
 }
 
-export async function fund(accountId: string): Promise<void> {
-  const r = await fetch(`${FRIENDBOT_URL}?addr=${accountId}`);
-  if (!r.ok) throw new Error(`friendbot ${r.status} for ${accountId}`);
+/** Testnet funding via friendbot. Transport errors (ECONNRESET and similar) are retried; an HTTP error is not. */
+export async function fund(accountId: string, attempts = 3): Promise<void> {
+  for (let i = 1; ; i++) {
+    let r: Response;
+    try {
+      r = await fetch(`${FRIENDBOT_URL}?addr=${accountId}`);
+    } catch (err) {
+      if (i >= attempts) throw err;
+      await new Promise((res) => setTimeout(res, 1500 * i));
+      continue;
+    }
+    if (!r.ok) throw new Error(`friendbot ${r.status} for ${accountId}`);
+    return;
+  }
 }
 
 export type CreditLine = { customer: string; owed: string; limit: string; authorized: boolean };
