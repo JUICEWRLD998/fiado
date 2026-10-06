@@ -1,0 +1,165 @@
+{
+  "ranAt": "2026-10-06T12:39:56.563Z",
+  "network": "testnet",
+  "horizon": "https://horizon-testnet.stellar.org",
+  "accounts": {
+    "shop": "GBNHZU4UVWGDSXCXJVHOGOC652BQ6Z72O6OQAWVTP6V5UF4WMZZJ7TFG",
+    "customer": "GA3ZRG4LRJVRTQNO3IGOMR3XN5WJXBQORSLRO5BPHGBLVWFLONUOC6IC",
+    "stranger": "GDVQCAFY4SL3MURSDEYXXKHSM4LN77TJZ4VKZOQH3TXQVUITU7744JPO",
+    "dollarIssuer": "GAGT5NFAYCNK33XCFCZNCM64FZTTA44BDMKXFZNDVRXKULECY4L2BLPH"
+  },
+  "steps": [
+    {
+      "label": "join: sponsored create, 0 XLM, AUTH_REQUIRED",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "3fd89ba6daf3bc4aaa3b926f5c6ebc119a860b4559738946122e28308c888526"
+    },
+    {
+      "label": "customer XLM balance after join",
+      "expect": "0.0000000",
+      "outcome": "0.0000000",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "open line: shop trustline limit 5000 + customer authorizes",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "978a1a039de7229fa1e783aa7bd3f8c4d9fe3d8d5d010b5344e82e1397d9f2ee"
+    },
+    {
+      "label": "buy 3000 on credit (fee-bumped)",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "2c7537a00f626ab526d660a5729313fd5682d6f37e42a3da6549aab056238906"
+    },
+    {
+      "label": "buy 2500 more -> over the limit",
+      "expect": "op_line_full",
+      "outcome": "{\"transaction\":\"tx_fee_bump_inner_failed\",\"inner_transaction\":\"tx_failed\",\"operations\":[\"op_line_full\"]}",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "shop forges a purchase without customer signature",
+      "expect": "op_bad_auth",
+      "outcome": "{\"transaction\":\"tx_failed\",\"operations\":[\"op_bad_auth\"]}",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "stranger opens a FIADO trustline (unauthorized)",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "be15bb4de1836cccd8d8a27951f9c13c12027d204728e088f76c20434eb3fa20"
+    },
+    {
+      "label": "customer pays the unauthorized stranger",
+      "expect": "op_not_authorized",
+      "outcome": "{\"transaction\":\"tx_fee_bump_inner_failed\",\"inner_transaction\":\"tx_failed\",\"operations\":[\"op_not_authorized\"]}",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "cash repay 1000 (shop returns IOU to issuer = burn)",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "f6c20f00f62f4c75d0931681eaaf9612a2660775eb7dd66f2c5b56a3fa2ba340"
+    },
+    {
+      "label": "shop FIADO balance after cash repay",
+      "expect": "2000.0000000",
+      "outcome": "2000.0000000",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "setup: shop trusts TUSD",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "075948fb6b0d469610791d9045b2c51d75eb276066211e3c9d3f47ed927adcd8"
+    },
+    {
+      "label": "setup: customer TUSD trustline, reserve sponsored by shop",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "95afd2f497acaa5bcf36bf1701d9842d885869a14782590e5275f7b3b346576f"
+    },
+    {
+      "label": "setup: issue 2 TUSD to customer",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "90d2390aa0cfbefa3356f75a1b716546ec609d9ba1013cfd18bc49cec99e6202"
+    },
+    {
+      "label": "atomic repay: 1 TUSD in + 1500 FIADO burned, one tx",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "fb30bae9e0c3048ffe342f930b6533d46cce130eedc58796b83529110c7245b9"
+    },
+    {
+      "label": "atomic repay with insufficient TUSD -> whole tx reverts",
+      "expect": "op_underfunded",
+      "outcome": "{\"transaction\":\"tx_failed\",\"operations\":[\"op_underfunded\",\"op_success\"]}",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "shop FIADO after atomic repay + reverted repay",
+      "expect": "500.0000000",
+      "outcome": "500.0000000",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "lower limit to 100 while 500 is owed",
+      "expect": "op_invalid_limit",
+      "outcome": "{\"transaction\":\"tx_failed\",\"operations\":[\"op_invalid_limit\"]}",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "cash repay final 500",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "19fb71ec2d95da060b487c3161da0980a6e59ee22f1ffff9b06f308207acafc0"
+    },
+    {
+      "label": "close line (limit 0 removes trustline)",
+      "expect": "ok",
+      "outcome": "ok",
+      "pass": true,
+      "hash": "906c8c91a0097a35fa67932eb58c497b303fa09f8a35ca3fe5c9e1de64e325d0"
+    },
+    {
+      "label": "buy at a closed line",
+      "expect": "op_no_trust",
+      "outcome": "{\"transaction\":\"tx_fee_bump_inner_failed\",\"inner_transaction\":\"tx_failed\",\"operations\":[\"op_no_trust\"]}",
+      "pass": true,
+      "hash": null
+    },
+    {
+      "label": "customer still holds 0 XLM at the end",
+      "expect": "0.0000000",
+      "outcome": "0.0000000",
+      "pass": true,
+      "hash": null
+    }
+  ],
+  "summary": {
+    "total": 21,
+    "passed": 21,
+    "failed": 0
+  }
+}

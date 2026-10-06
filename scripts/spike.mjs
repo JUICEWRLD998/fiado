@@ -123,7 +123,9 @@ async function main() {
     customerTxBumped([S.Operation.payment({ destination: shop.publicKey(), asset: FIADO, amount: '2500' })]));
 
   // 5. NEGATIVE CONTROL: the shop cannot create debt without the customer's signature.
-  await run('shop forges a purchase without customer signature', 'tx_bad_auth', async () => {
+  // The tx source (shop) is properly signed, so it reaches the ledger and fails at the op:
+  // op_bad_auth, not tx_bad_auth (first run 2026-10-06 predicted tx_bad_auth; corrected).
+  await run('shop forges a purchase without customer signature', 'op_bad_auth', async () => {
     const tx = await txFrom(shop.publicKey(), [
       S.Operation.payment({ source: customer.publicKey(), destination: shop.publicKey(), asset: FIADO, amount: '100' }),
     ]);
