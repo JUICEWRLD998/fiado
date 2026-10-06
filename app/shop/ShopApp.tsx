@@ -24,6 +24,7 @@ import { Notice } from '@/ui/Notice';
 import u from '@/ui/screens.module.css';
 import { Shell } from '@/ui/Shell';
 import { Slip } from '@/ui/Slip';
+import { AsideCard, Work } from '@/ui/Work';
 import { Gauge } from '@/ui/Gauge';
 
 const flowFailed = (message: string): ShopFlowState => ({ step: 'failed', message });
@@ -67,7 +68,15 @@ function Setup({ custody }: { custody: Custody }) {
   }
 
   return (
-    <div className={u.centre}>
+    <Work
+      aside={
+        <AsideCard title="What you are creating">
+          <p>A shop credit book on the Stellar test network. Your customers sign each purchase on their own phone.</p>
+          <p>The credit limit you set for each customer is kept by the network, so a purchase over it is refused.</p>
+          <p className={u.meta}>Your key stays on this device. We never see it.</p>
+        </AsideCard>
+      }
+    >
       <Slip title="Open your shop">
         <form onSubmit={submit}>
           <TextField label="Shop name" data-testid="shop-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="organization" required />
@@ -90,13 +99,13 @@ function Setup({ custody }: { custody: Custody }) {
           This runs on the Stellar test network. No real money is involved.
         </p>
       </Slip>
-    </div>
+    </Work>
   );
 }
 
 function Locked({ custody }: { custody: Custody }) {
   return (
-    <div className={u.centre}>
+    <Work>
       <Slip title="Welcome back">
         <p>Unlock your shop with your passkey.</p>
         <Button variant="primary" data-testid="unlock-shop" busy={custody.busy} onClick={() => void custody.unlock()}>
@@ -104,7 +113,7 @@ function Locked({ custody }: { custody: Custody }) {
         </Button>
         {custody.error && <Notice tone="problem">{custody.error}</Notice>}
       </Slip>
-    </div>
+    </Work>
   );
 }
 
@@ -175,25 +184,25 @@ function Ready({ custody, kp }: { custody: Custody; kp: Keypair }) {
 
   if (phase === 'checking' || phase === 'setup') {
     return (
-      <div className={u.centre}>
+      <Work>
         <Slip title="Setting up your shop">
           <Notice tone="pending" data-testid="setup-progress">
             {progress || 'Checking your shop…'}
           </Notice>
         </Slip>
-      </div>
+      </Work>
     );
   }
   if (phase === 'error') {
     return (
-      <div className={u.centre}>
+      <Work>
         <Slip title="Setting up your shop">
           <Notice tone="problem">{problem}</Notice>
           <Button variant="primary" onClick={() => void finishSetup()}>
             Try again
           </Button>
         </Slip>
-      </div>
+      </Work>
     );
   }
 

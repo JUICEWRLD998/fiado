@@ -21,6 +21,7 @@ import { RecordFacts } from '@/ui/RecordFacts';
 import u from '@/ui/screens.module.css';
 import { Shell } from '@/ui/Shell';
 import { Slip } from '@/ui/Slip';
+import { AsideCard, Work } from '@/ui/Work';
 
 const units = (n: bigint) => Number(n) / 10_000_000;
 
@@ -56,7 +57,14 @@ function CreateKey({ custody }: { custody: Custody }) {
   }
 
   return (
-    <div className={u.centre}>
+    <Work
+      aside={
+        <AsideCard title="Only you can add to your tab">
+          <p>Your key is made on this device. A shop can offer you credit, but only your signature adds to what you owe.</p>
+          <p className={u.meta}>This runs on the Stellar test network. No real money.</p>
+        </AsideCard>
+      }
+    >
       <Slip title="Make your Fiado key">
         <form onSubmit={submit}>
           <p>Shops will see this name next to your tab, so use the name they know you by.</p>
@@ -68,20 +76,20 @@ function CreateKey({ custody }: { custody: Custody }) {
           {(problem ?? custody.error) && <Notice tone="problem">{problem ?? custody.error}</Notice>}
         </form>
       </Slip>
-    </div>
+    </Work>
   );
 }
 
 function Locked({ custody }: { custody: Custody }) {
   return (
-    <div className={u.centre}>
+    <Work>
       <Slip title="Welcome back">
         <Button variant="primary" data-testid="unlock-customer" busy={custody.busy} onClick={() => void custody.unlock()}>
           {custody.busy ? 'Unlocking…' : 'Unlock with passkey'}
         </Button>
         {custody.error && <Notice tone="problem">{custody.error}</Notice>}
       </Slip>
-    </div>
+    </Work>
   );
 }
 

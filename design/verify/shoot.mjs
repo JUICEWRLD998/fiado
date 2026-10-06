@@ -33,10 +33,48 @@ try {
         page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
         page.on('pageerror', (e) => errors.push(String(e)));
         await page.goto(base + p, { waitUntil: 'load' });
+        if (process.env.SCROLL) {
+          // let anything that starts when it scrolls into view start, then come back to the top
+          await page.evaluate(async () => {
+            for (let y = 0; y < document.body.scrollHeight; y += 300) {
+              window.scrollTo(0, y);
+              await new Promise((r) => setTimeout(r, 150));
+            }
+          });
+          await page.waitForTimeout(2200);
+          await page.evaluate(() => window.scrollTo(0, 0));
+        }
         await page.waitForTimeout(Number(wait));
+
+        // overflow, measured per element (scrollWidth is blind under overflow-x: clip), with a planted control
+        const measure = () => {
+          const cw = document.documentElement.clientWidth;
+          const bad = [];
+          for (const el of document.body.querySelectorAll('*')) {
+            if (el.closest('svg')) continue;
+            const closed = el.closest('details:not([open])');
+            if (closed && !(el.tagName === 'SUMMARY' && el.parentElement === closed)) continue;
+            const r = el.getBoundingClientRect();
+            if (r.width === 0 || r.height === 0) continue;
+            if (r.right > cw + 1) bad.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]} right=${Math.round(r.right)} cw=${cw}`);
+          }
+          return bad;
+        };
+        await page.evaluate(() => {
+          const d = document.createElement('div');
+          d.id = '__ctl';
+          d.style.cssText = 'position:absolute;left:0;top:0;width:2000px;height:2px';
+          document.body.appendChild(d);
+        });
+        const withControl = await page.evaluate(measure);
+        await page.evaluate(() => document.getElementById('__ctl')?.remove());
+        const blind = !withControl.some((s) => s.includes('right=2000'));
+        const real = await page.evaluate(measure);
+
         const file = `${out}/${slug(p)}-w${width}-${scheme}.png`;
         await page.screenshot({ path: file, fullPage: true });
-        console.log(`${file}${errors.length ? `  console errors: ${errors.join(' | ')}` : ''}`);
+        const flag = blind ? '  PROBE BLIND' : real.length ? `  OVERFLOW: ${real.slice(0, 3).join('; ')}` : '';
+        console.log(`${file}${flag}${errors.length ? `  console errors: ${errors.join(' | ')}` : ''}`);
         await ctx.close();
       }
     }

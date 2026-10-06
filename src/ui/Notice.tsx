@@ -7,7 +7,8 @@ export type NoticeTone = 'note' | 'ok' | 'problem' | 'pending';
 export function Notice({ tone = 'note', role, children, ...rest }: HTMLAttributes<HTMLDivElement> & { tone?: NoticeTone }) {
   return (
     <div {...rest} role={role ?? (tone === 'problem' ? 'alert' : 'status')} data-tone={tone} className={s.notice}>
-      {children}
+      <span className={s.mark} aria-hidden="true" />
+      <div className={s.body}>{children}</div>
     </div>
   );
 }

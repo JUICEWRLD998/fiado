@@ -1,31 +1,62 @@
-/* A line of ink under the heading: what just happened. Colour is paired with words, never the only signal. */
+/* A line of ink under the heading: what just happened. A tinted box with a small shape in front, never a side stripe.
+   The shape differs by kind (circle, ring, triangle), so colour is never the only signal. */
 
 .notice {
+  --tone: var(--accent);
+  --wash: var(--accent-wash);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
   margin: var(--space-4) 0;
   padding: var(--space-3) var(--space-4);
-  border-left: 3px solid var(--rule-strong);
-  border-radius: 0 var(--radius-control) var(--radius-control) 0;
-  background: var(--accent-wash);
+  border: 1px solid color-mix(in oklab, var(--tone) 35%, transparent);
+  border-radius: var(--radius-control);
+  background: var(--wash);
   color: var(--ink);
   overflow-wrap: anywhere;
 }
 
 .notice[data-tone='ok'] {
-  border-left-color: var(--tally);
-  background: var(--tally-wash);
+  --tone: var(--tally);
+  --wash: var(--tally-wash);
 }
 
 .notice[data-tone='problem'] {
-  border-left-color: var(--margin);
-  background: var(--margin-wash);
+  --tone: var(--margin);
+  --wash: var(--margin-wash);
 }
 
 .notice[data-tone='pending'] {
-  border-left-color: var(--highlight);
-  background: var(--highlight-wash);
+  --tone: var(--ink-2);
+  --wash: var(--highlight-wash);
 }
 
-.notice > :last-child {
+.mark {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 0.42em;
+  background: var(--tone);
+  border-radius: 50%;
+}
+
+/* pending: a ring, "in progress" */
+.notice[data-tone='pending'] .mark {
+  background: transparent;
+  border: 2px solid var(--tone);
+}
+
+/* problem: a triangle */
+.notice[data-tone='problem'] .mark {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.body {
+  min-width: 0;
+}
+
+.body > :last-child {
   margin-bottom: 0;
 }
 

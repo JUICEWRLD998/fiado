@@ -261,8 +261,3 @@
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
 }
-
-.centre {
-  max-width: 30rem;
-  margin: var(--space-5) auto 0;
-}

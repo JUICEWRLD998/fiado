@@ -16,6 +16,7 @@ import { Notice } from '@/ui/Notice';
 import u from '@/ui/screens.module.css';
 import { Shell } from '@/ui/Shell';
 import { Slip } from '@/ui/Slip';
+import { AsideCard, Work } from '@/ui/Work';
 
 type Sending = { step: 'idle' } | { step: 'sending' } | { step: 'confirmed'; owed: bigint } | { step: 'pending' } | { step: 'error'; message: string };
 
@@ -89,7 +90,16 @@ export default function PayFlow() {
 
   return (
     <Shell>
-      <div className={u.centre}>
+      <Work
+        aside={
+          offer && review?.ok && sending.step === 'idle' ? (
+            <AsideCard title="What signing does">
+              <p>Your signature adds this purchase to your tab. Nothing is taken from you now.</p>
+              <p>If it would go over your limit, the network refuses it and nothing is added.</p>
+            </AsideCard>
+          ) : undefined
+        }
+      >
         {loadError && (
           <Notice tone="problem" data-testid="pay-error">
             {loadError}
@@ -175,7 +185,7 @@ export default function PayFlow() {
             {sending.message}
           </Notice>
         )}
-      </div>
+      </Work>
     </Shell>
   );
 }

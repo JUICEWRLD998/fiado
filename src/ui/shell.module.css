@@ -105,6 +105,22 @@
   text-decoration: none;
 }
 
+.wordmark,
+.foot a {
+  transition: color var(--dur-micro) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wordmark:hover {
+    color: var(--accent);
+  }
+
+  .foot a:hover {
+    color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+}
+
 .mark {
   display: block;
   width: 3px;

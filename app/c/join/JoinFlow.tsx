@@ -19,6 +19,7 @@ import { Notice } from '@/ui/Notice';
 import u from '@/ui/screens.module.css';
 import { Shell } from '@/ui/Shell';
 import { Slip } from '@/ui/Slip';
+import { AsideCard, Work } from '@/ui/Work';
 
 const failed = (message: string): CustomerJoinState => ({ step: 'failed', message });
 
@@ -84,7 +85,16 @@ export default function JoinFlow() {
 
   return (
     <Shell>
-      <div className={u.centre}>
+      <Work
+        aside={
+          offer && !state ? (
+            <AsideCard title="Before you join">
+              <p>The shop cannot add to your tab. Only your signature can.</p>
+              <p>If a purchase would go over the limit, the network refuses it.</p>
+            </AsideCard>
+          ) : undefined
+        }
+      >
         {loadError && (
           <Notice tone="problem" data-testid="join-error">
             {loadError}
@@ -161,7 +171,7 @@ export default function JoinFlow() {
             This code expired. Ask the shop for a new one.
           </Notice>
         )}
-      </div>
+      </Work>
     </Shell>
   );
 }
