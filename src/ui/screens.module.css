@@ -1,0 +1,263 @@
+/* Shared by the working screens: rows in the book, the work slips, record facts, key choice, empty states, the QR. */
+
+/* ---- a customer (or a tab) as a row in the book */
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.owed {
+  font-size: var(--text-xl);
+  font-weight: 650;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+.late {
+  color: var(--margin);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.more {
+  display: contents;
+}
+
+.more > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel {
+  margin-top: var(--space-4);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* a lone button or link in a stack keeps its own width instead of stretching across the slip */
+.stack > :is(button, a) {
+  justify-self: start;
+}
+
+.row2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---- the summary beside the book on a wide screen, and in the header on a phone */
+.asideCard {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--paper);
+  border-radius: var(--radius-slip);
+  box-shadow: var(--shadow-slip);
+}
+
+.asideCard h2 {
+  font-size: var(--text-l);
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.stat dt {
+  color: var(--ink-2);
+}
+
+.stat dd {
+  margin: 0;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.art {
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+
+/* ---- empty state: a tally, one sentence, one action */
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6) 0 var(--space-5);
+}
+
+.emptyArt {
+  width: min(14rem, 100%);
+  height: auto;
+}
+
+.empty p {
+  margin: 0;
+}
+
+/* ---- the QR slip */
+.qr {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.qr img {
+  padding: var(--space-2);
+  /* a QR must stay dark on light in every theme, or a camera cannot read it */
+  background: oklch(100% 0 0);
+  border-radius: var(--radius-control);
+}
+
+.qrLink {
+  max-width: 100%;
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+/* ---- record facts */
+.facts {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.factsHead {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 650;
+}
+
+.factList {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.byShop {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.byShop li {
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--rule);
+}
+
+/* ---- key choice: two honest options, each a labelled slip */
+.choices {
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.choices legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--raised);
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+
+.choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.choice:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.choice input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.choice span {
+  font-size: var(--text-s);
+}
+
+.choice strong {
+  display: block;
+  font-size: var(--text-m);
+}
+
+/* ---- the terms a person is about to sign */
+.terms {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.termsItem {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.termsAmount {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}

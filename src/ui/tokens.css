@@ -1,36 +1,211 @@
-/* Design tokens. Placeholder values until Phase 7 (ui-studio) measures the real palette. */
+/* Hallmark · route: custom (bespoke) · structure: the page is the counter book; loose things are slips
+ * idea: "the line stops at the margin": the network refusing an over-limit purchase, shown on a ruled page
+ * paper: oklch(97.6% 0.010 215) · accent: oklch(40% 0.170 262) · display: Bricolage Grotesque · body: Atkinson Hyperlegible Next
+ * axes: light / geometric-sans / cool (biro blue) · gates: pending · studied: no
+ *
+ * Every value here is measured by design/measure.mjs. Change a colour there first, then here.
+ */
+
 :root {
-  --paper: oklch(97% 0.012 85);
-  --ink: oklch(22% 0.02 260);
-  --ink-soft: oklch(42% 0.02 260);
-  --rule: oklch(86% 0.03 230);
-  --margin: oklch(62% 0.17 25);
-  --ok: oklch(52% 0.12 155);
+  --macrostructure: Counter Book;
+
+  /* ---- colour: the book (light) */
+  --paper: oklch(97.6% 0.010 215);
+  --raised: oklch(99% 0.006 215);
+  --sunk: oklch(94.5% 0.014 215);
+  --rule: oklch(84% 0.060 235);
+  --rule-strong: oklch(62% 0.100 240);
+  --ink: oklch(25% 0.075 262);
+  --ink-2: oklch(42% 0.060 262);
+  --accent: oklch(40% 0.170 262);
+  --accent-ink: oklch(98% 0.010 215);
+  --margin: oklch(52% 0.200 27);
+  --tally: oklch(46% 0.100 155);
+  --highlight: oklch(91% 0.160 100);
+
+  /* derived washes: a role colour mixed into the page, never a new hue */
+  --margin-wash: color-mix(in oklab, var(--margin) 9%, var(--paper));
+  --tally-wash: color-mix(in oklab, var(--tally) 9%, var(--paper));
+  --accent-wash: color-mix(in oklab, var(--accent) 7%, var(--paper));
+  --highlight-wash: color-mix(in oklab, var(--highlight) 55%, var(--paper));
+  --focus: oklch(50% 0.200 262);
+
+  /* ---- type */
+  --font-display: var(--font-bricolage), 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+  --font-body: var(--font-atkinson), 'Atkinson Hyperlegible Next', 'Segoe UI', sans-serif;
+  --text-xs: 0.8125rem;
+  --text-s: 0.9375rem;
+  --text-m: 1rem;
+  --text-l: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: clamp(2rem, 1.4rem + 2.4vw, 2.75rem);
+  --leading: 1.5;
+
+  /* ---- space (4pt) */
   --space-1: 4px;
   --space-2: 8px;
-  --space-3: 16px;
-  --space-4: 24px;
-  --space-5: 40px;
-  --radius: 10px;
-  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+
+  /* ---- shape: concentric (outer radius = inner radius + padding) */
+  --radius-control: 8px;
+  --radius-slip: 12px;
+  --target: 44px;
+
+  /* ---- depth: layered, transparent, works on both papers */
+  --shadow-slip:
+    0 1px 0 oklch(25% 0.075 262 / 0.05),
+    0 2px 6px oklch(25% 0.075 262 / 0.07),
+    0 12px 28px -8px oklch(25% 0.075 262 / 0.14);
+
+  /* ---- motion: mirrored in src/ui/motion.ts. Change both together. */
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  color-scheme: light;
 }
 
+/* ---- the night counter (dark). Not an inversion: lifted lightness, calmer chroma. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --paper: oklch(20% 0.012 260);
-    --ink: oklch(94% 0.012 85);
-    --ink-soft: oklch(76% 0.015 85);
-    --rule: oklch(34% 0.03 230);
-    --margin: oklch(70% 0.15 25);
-    --ok: oklch(74% 0.12 155);
+    --paper: oklch(21% 0.020 255);
+    --raised: oklch(25.5% 0.022 255);
+    --sunk: oklch(17.5% 0.018 255);
+    --rule: oklch(34% 0.040 250);
+    --rule-strong: oklch(52% 0.070 245);
+    --ink: oklch(93% 0.014 230);
+    --ink-2: oklch(76% 0.020 235);
+    --accent: oklch(78% 0.120 245);
+    --accent-ink: oklch(20% 0.030 255);
+    --margin: oklch(72% 0.170 25);
+    --tally: oklch(75% 0.130 155);
+    --highlight: oklch(34% 0.060 100);
+    --highlight-wash: color-mix(in oklab, var(--highlight) 70%, var(--paper));
+    --focus: oklch(82% 0.130 245);
+    --shadow-slip:
+      0 1px 0 oklch(0% 0 0 / 0.3),
+      0 2px 6px oklch(0% 0 0 / 0.25),
+      0 12px 28px -8px oklch(0% 0 0 / 0.45);
+    color-scheme: dark;
   }
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; }
+:root[data-theme='dark'] {
+  --paper: oklch(21% 0.020 255);
+  --raised: oklch(25.5% 0.022 255);
+  --sunk: oklch(17.5% 0.018 255);
+  --rule: oklch(34% 0.040 250);
+  --rule-strong: oklch(52% 0.070 245);
+  --ink: oklch(93% 0.014 230);
+  --ink-2: oklch(76% 0.020 235);
+  --accent: oklch(78% 0.120 245);
+  --accent-ink: oklch(20% 0.030 255);
+  --margin: oklch(72% 0.170 25);
+  --tally: oklch(75% 0.130 155);
+  --highlight: oklch(34% 0.060 100);
+  --highlight-wash: color-mix(in oklab, var(--highlight) 70%, var(--paper));
+  --focus: oklch(82% 0.130 245);
+  --shadow-slip:
+    0 1px 0 oklch(0% 0 0 / 0.3),
+    0 2px 6px oklch(0% 0 0 / 0.25),
+    0 12px 28px -8px oklch(0% 0 0 / 0.45);
+  color-scheme: dark;
+}
+
+/* ---- base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
 body {
-  background: var(--paper);
+  margin: 0;
+  /* clip, never hidden: a hidden overflow-x makes the page itself a scroll container */
+  overflow-x: clip;
+}
+
+body {
+  background: var(--sunk);
   color: var(--ink);
-  font: 16px/1.5 var(--font-body);
+  font-family: var(--font-body);
+  font-size: var(--text-m);
+  line-height: var(--leading);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Atkinson's slashed zero is right for telling 0 from O, but it is busy beside the Naira sign: ss01 is the plain zero */
+  font-feature-settings: 'ss01' 1;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 650;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-wrap: balance;
+  font-style: normal;
+}
+
+:where(p, li, dd, blockquote) {
+  max-width: 68ch;
+}
+
+p {
+  margin: 0 0 var(--space-3);
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+:where(button, input, select, textarea) {
+  font: inherit;
+  color: inherit;
+}
+
+/* figures that can change never jitter */
+.num,
+:where(td, output, time, [data-num]) {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* focus is a state of its own: instant, never animated, always at least 3:1 */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  transition: none;
+}
+
+::selection {
+  background: var(--highlight);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
 }

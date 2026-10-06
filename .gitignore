@@ -11,3 +11,6 @@ test-results/
 next-env.d.ts
 *.tsbuildinfo
 exports/
+design/world/
+test-results/
+design/shots/

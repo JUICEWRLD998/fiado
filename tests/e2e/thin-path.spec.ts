@@ -36,6 +36,7 @@ test('shop and customer complete the thin path on testnet', async ({ browser, ba
   await shop.screenshot({ path: `${SHOTS}/01-shop-ready.png` });
 
   // ---- 2. add a customer: the shop shows a code
+  await shop.getByTestId('add-customer').click();
   await shop.getByTestId('start-join').click();
   const joinLink = await shop.getByTestId('flow-link').getAttribute('href');
   expect(joinLink).toContain('/c/join?s=');
@@ -98,6 +99,7 @@ test('shop and customer complete the thin path on testnet', async ({ browser, ba
   await expect(row.getByTestId('flow-refused')).toBeVisible({ timeout: 90_000 });
   await expect(row.getByTestId('flow-refused')).toContainText('Over the credit limit');
   note('REFUSED over the limit (op_line_full)', await row.getByTestId('flow-explorer').getAttribute('href'));
+  await shop.waitForTimeout(1500); // the moment settles by about 1.1s: this is the frame the OG card and README are cut from
   await shop.screenshot({ path: `${SHOTS}/06-shop-refused-over-limit.png` });
   await row.getByRole('button', { name: 'Close' }).click();
   await expect(row.getByTestId('row-owed')).toHaveText('₦3,200'); // nothing was added

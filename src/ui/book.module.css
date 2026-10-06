@@ -1,0 +1,120 @@
+/* The book: a ruled page with a red margin, rows on lines, and, on a wide screen, a quiet column of context beside it. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 1100px) {
+  .layout[data-aside] {
+    max-width: 70rem;
+    grid-template-columns: minmax(0, 46rem) minmax(15rem, 1fr);
+    align-items: start;
+  }
+}
+
+.page {
+  position: relative;
+  padding: var(--space-6) var(--space-5) var(--space-6) 4.25rem;
+  background: var(--paper);
+  border-radius: var(--radius-slip);
+  box-shadow: var(--shadow-slip);
+  overflow: clip;
+}
+
+/* the margin: one red line, the full height of the page */
+.page::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 3.25rem;
+  width: 2px;
+  background: var(--margin);
+  opacity: 0.85;
+}
+
+.head {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-variation-settings: 'wdth' 92;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  color: var(--ink-2);
+}
+
+.meta > :last-child {
+  margin-bottom: 0;
+}
+
+.action {
+  margin-top: var(--space-3);
+  justify-self: start;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.row {
+  position: relative;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* marks in the gutter, left of the margin: a red dot for something late, a green tick for a settled tab */
+.row[data-mark]::before {
+  content: '';
+  position: absolute;
+  left: -2.65rem;
+  top: 1.45rem;
+}
+
+.row[data-mark='late']::before {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--margin);
+}
+
+.row[data-mark='clear']::before {
+  width: 7px;
+  height: 13px;
+  border: solid var(--tally);
+  border-width: 0 3px 3px 0;
+  border-radius: 1px;
+  transform: rotate(40deg);
+}
+
+.aside {
+  position: sticky;
+  top: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding: var(--space-5) var(--space-4) var(--space-5) 2.75rem;
+  }
+
+  .page::before {
+    left: 1.9rem;
+  }
+
+  .row[data-mark]::before {
+    left: -2.05rem;
+  }
+}

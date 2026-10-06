@@ -1,25 +1,156 @@
-.main {
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: var(--space-5) var(--space-3);
+/* The landing page is a page of the book: the same ruled paper and red margin as the product, wider. */
+
+.page {
+  max-width: 62rem;
+  margin-inline: auto;
+  padding-right: var(--space-6);
+}
+
+.hero {
+  display: grid;
+  gap: var(--space-6);
+  align-items: center;
+  padding-bottom: var(--space-7);
+}
+
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+  }
 }
 
 .title {
-  font-size: 2.25rem;
-  margin: 0;
+  font-size: clamp(2.25rem, 1.5rem + 3.4vw, 3.75rem);
+  font-variation-settings: 'wdth' 92;
+  max-width: 14ch;
 }
 
 .lede {
-  color: var(--ink-soft);
-  margin-top: var(--space-1);
+  margin: var(--space-4) 0 var(--space-5);
+  font-size: var(--text-l);
+  color: var(--ink-2);
+  max-width: 36ch;
 }
 
-.status {
-  border-left: 3px solid var(--margin);
-  padding-left: var(--space-3);
-  color: var(--ink-soft);
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
-.status a {
-  color: inherit;
+.note {
+  margin: var(--space-4) 0 0;
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+.figure {
+  margin: 0;
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-slip);
+  outline: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+  outline-offset: -1px;
+  box-shadow: var(--shadow-slip);
+}
+
+.caption {
+  margin-top: var(--space-3);
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+.section {
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--rule);
+}
+
+.section h2 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-4);
+}
+
+/* the line that matters, marked with a highlighter pen, as it would be in the book */
+.quote {
+  margin: var(--space-5) 0 0;
+}
+
+.quote p {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: 1.5;
+  max-width: 24ch;
+}
+
+.quote p span {
+  background: linear-gradient(transparent 52%, var(--highlight) 52%, var(--highlight) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-inline: 0.15em;
+}
+
+.quote footer {
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+/* three entries in the book: a heading on the left of the ruled line, the explanation on the right */
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.entries li {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--rule);
+}
+
+@media (min-width: 800px) {
+  .entries li {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.entries h3 {
+  font-size: var(--text-l);
+}
+
+.entries p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.replay {
+  margin-top: var(--space-5);
+  max-width: 34rem;
+}
+
+.replayHold {
+  min-height: 15rem;
+}
+
+.replayActions {
+  margin-top: var(--space-2);
+}
+
+.end {
+  padding: var(--space-6) 0 var(--space-2);
+  border-top: 1px solid var(--rule);
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding-right: var(--space-4);
+  }
 }

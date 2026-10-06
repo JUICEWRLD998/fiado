@@ -1,0 +1,75 @@
+/* A line of ink under the heading: what just happened. A tinted box with a small shape in front, never a side stripe.
+   The shape differs by kind (circle, ring, triangle), so colour is never the only signal. */
+
+.notice {
+  --tone: var(--accent);
+  --wash: var(--accent-wash);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in oklab, var(--tone) 35%, transparent);
+  border-radius: var(--radius-control);
+  background: var(--wash);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.notice[data-tone='ok'] {
+  --tone: var(--tally);
+  --wash: var(--tally-wash);
+}
+
+.notice[data-tone='problem'] {
+  --tone: var(--margin);
+  --wash: var(--margin-wash);
+}
+
+.notice[data-tone='pending'] {
+  --tone: var(--ink-2);
+  --wash: var(--highlight-wash);
+}
+
+.mark {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 0.42em;
+  background: var(--tone);
+  border-radius: 50%;
+}
+
+/* pending: a ring, "in progress" */
+.notice[data-tone='pending'] .mark {
+  background: transparent;
+  border: 2px solid var(--tone);
+}
+
+/* problem: a triangle */
+.notice[data-tone='problem'] .mark {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.body {
+  min-width: 0;
+}
+
+.body > :last-child {
+  margin-bottom: 0;
+}
+
+/* the one entrance for a notice: a short fade, no travel */
+@media (prefers-reduced-motion: no-preference) {
+  .notice {
+    animation: arrive var(--dur-short) var(--ease-out) both;
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
