@@ -1,0 +1,109 @@
+{
+ "capturedAt": "2026-10-07T08:28:40.876Z",
+ "network": "testnet",
+ "shop": "GA7AZQ7DT4X7FBEPT6CZJOP3DYMGCP54UFY3FZLJ5IAEXZM6EO5VWV3T",
+ "payments": [
+  {
+   "id": "21714332446375937",
+   "type": "create_account",
+   "created_at": "2026-10-06T15:59:57Z",
+   "transaction_hash": "0b7a9537d595e15d848b88c7ce2e94590206f14b20d5c09f2816891f552e79a1",
+   "transaction_successful": true,
+   "transaction": {
+    "memo_type": "none",
+    "successful": true,
+    "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAA="
+   }
+  },
+  {
+   "id": "21714349626241026",
+   "type": "create_account",
+   "created_at": "2026-10-06T16:00:17Z",
+   "transaction_hash": "c45ad6171bd2301fc68049de7f63fa2b3273b928e542b1f1467177b82b462972",
+   "transaction_successful": true,
+   "transaction": {
+    "memo_type": "none",
+    "successful": true,
+    "result_xdr": "AAAAAAAAArwAAAAAAAAABwAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAKAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAVAAAAAAAAAAA="
+   }
+  },
+  {
+   "id": "21714358216192001",
+   "type": "payment",
+   "created_at": "2026-10-06T16:00:27Z",
+   "transaction_hash": "83e6e2e105de46a0e81dc2881e089fe10514b30589f04bc69c3f453d4cb6e180",
+   "transaction_successful": true,
+   "asset_code": "FIADO",
+   "asset_issuer": "GDXVDM5AEINH2DODR5SRVQHGEIFHRDN3GIEOR6UOCIUPJBL6CGSW4HJP",
+   "from": "GDXVDM5AEINH2DODR5SRVQHGEIFHRDN3GIEOR6UOCIUPJBL6CGSW4HJP",
+   "to": "GA7AZQ7DT4X7FBEPT6CZJOP3DYMGCP54UFY3FZLJ5IAEXZM6EO5VWV3T",
+   "amount": "3200.0000000",
+   "transaction": {
+    "memo": "Rice 2 bags|261013",
+    "memo_type": "text",
+    "successful": true,
+    "result_xdr": "AAAAAAAAAMgAAAABdZL4uxthcP2c+nDhPTzwldDCiz5hzDpiZ46i9A3hYZsAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAAAAAAA="
+   }
+  },
+  {
+   "id": "21714371101081602",
+   "type": "create_account",
+   "created_at": "2026-10-06T16:00:42Z",
+   "transaction_hash": "9f45cd657e81cda66b4b3daf8ee0113d3921536b09a6cebf93b4b82e780b1308",
+   "transaction_successful": true,
+   "transaction": {
+    "memo_type": "none",
+    "successful": true,
+    "result_xdr": "AAAAAAAAArwAAAAAAAAABwAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAKAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAVAAAAAAAAAAA="
+   }
+  },
+  {
+   "id": "21714379691008001",
+   "type": "payment",
+   "created_at": "2026-10-06T16:00:52Z",
+   "transaction_hash": "dc4cf3f0ffce149fa31519ddab933f022e4909038728e50c3f229e933b066ccc",
+   "transaction_successful": true,
+   "asset_code": "FIADO",
+   "asset_issuer": "GD7LXIREFPXS5D5CV2QRFOSW6CTG5VATZ32FIWTJ4WNRFBADRRNVYH3J",
+   "from": "GD7LXIREFPXS5D5CV2QRFOSW6CTG5VATZ32FIWTJ4WNRFBADRRNVYH3J",
+   "to": "GA7AZQ7DT4X7FBEPT6CZJOP3DYMGCP54UFY3FZLJ5IAEXZM6EO5VWV3T",
+   "amount": "7600.0000000",
+   "transaction": {
+    "memo": "Cement 3 bags|261013",
+    "memo_type": "text",
+    "successful": true,
+    "result_xdr": "AAAAAAAAAMgAAAABPMk4vGH3pznM9bw9zBwyji4oXC8mTtpMp+r3Z7bNRxsAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAAAAAAA="
+   }
+  },
+  {
+   "id": "21714392575938562",
+   "type": "create_account",
+   "created_at": "2026-10-06T16:01:07Z",
+   "transaction_hash": "b9051c0eefe178885af350134cd59138fd9d9a97efc1bce21a6caa98f344e124",
+   "transaction_successful": true,
+   "transaction": {
+    "memo_type": "none",
+    "successful": true,
+    "result_xdr": "AAAAAAAAArwAAAAAAAAABwAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAKAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAVAAAAAAAAAAA="
+   }
+  },
+  {
+   "id": "21715127015313409",
+   "type": "payment",
+   "created_at": "2026-10-06T16:15:22Z",
+   "transaction_hash": "d04d57899f3ea8e5aae1b14026c1d7c3a6a643bb8e3def11f05a83c14059c3db",
+   "transaction_successful": false,
+   "asset_code": "FIADO",
+   "asset_issuer": "GDXVDM5AEINH2DODR5SRVQHGEIFHRDN3GIEOR6UOCIUPJBL6CGSW4HJP",
+   "from": "GDXVDM5AEINH2DODR5SRVQHGEIFHRDN3GIEOR6UOCIUPJBL6CGSW4HJP",
+   "to": "GA7AZQ7DT4X7FBEPT6CZJOP3DYMGCP54UFY3FZLJ5IAEXZM6EO5VWV3T",
+   "amount": "9000.0000000",
+   "transaction": {
+    "memo": "Cooking oil 25L|261013",
+    "memo_type": "text",
+    "successful": false,
+    "result_xdr": "AAAAAAAAAMj////za9KMoNepX6Y55L0cL6szWbY5qPhpl8kjRc7HH9YPkDwAAAAAAAAAAP////8AAAABAAAAAAAAAAH////4AAAAAAAAAAA="
+   }
+  }
+ ]
+}

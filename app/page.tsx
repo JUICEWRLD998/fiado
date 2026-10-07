@@ -42,6 +42,9 @@ export default function Landing() {
               <Link {...buttonStyle('secondary')} href="/c">
                 I’m a customer
               </Link>
+              <Link {...buttonStyle('quiet')} href="/try" data-testid="landing-try">
+                Try a practice shop
+              </Link>
             </div>
             <p className={s.note}>Runs on the Stellar test network. No real money.</p>
           </div>

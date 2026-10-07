@@ -1,6 +1,6 @@
 // What the screens read from Horizon. Everything here is a read: no key, no signature.
 
-import { book, record, todayUtc, toCustomerInfo, toLines, toMovements, type Book, type CustomerInfo, type RawBalance, type RawPayment, type RecordSummary } from '../book';
+import { book, evidence, record, todayUtc, type ShopEvidence, toCustomerInfo, toLines, toMovements, type Book, type CustomerInfo, type RawBalance, type RawPayment, type RecordSummary } from '../book';
 import { toStroops } from '../chain/amount';
 import { HORIZON_URL, DEFAULT_CURRENCY, decodeData, NAME_KEY, CURRENCY_KEY } from '../chain';
 import { readProfile, server } from '../chain/horizon';
@@ -14,9 +14,9 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 /** Every payment an account took part in, with its transaction, oldest first. Follows the paging links. */
-export async function fetchAllPayments(account: string, maxPages = 20): Promise<RawPayment[]> {
+export async function fetchAllPayments(account: string, maxPages = 20, opts: { failed?: boolean } = {}): Promise<RawPayment[]> {
   const all: RawPayment[] = [];
-  let url = `${HORIZON_URL}/accounts/${account}/payments?join=transactions&order=asc&limit=200`;
+  let url = `${HORIZON_URL}/accounts/${account}/payments?join=transactions&order=asc&limit=200${opts.failed ? '&include_failed=true' : ''}`;
   for (let page = 0; page < maxPages; page++) {
     const body = await getJson<PagedRecords<RawPayment>>(url);
     if (body._embedded.records.length === 0) break;
@@ -88,7 +88,12 @@ export async function loadRecord(customer: string, today: string = todayUtc()): 
   }
 }
 
-export type ShopProfiles = Record<string, { name: string | null; currency: string }>;
+/** What a shop's public feed proves, counted live. Failed transactions are included so refusals can be seen. */
+export async function loadEvidence(shop: string): Promise<ShopEvidence> {
+  return evidence(shop, await fetchAllPayments(shop, 20, { failed: true }));
+}
+
+export type ShopProfiles =Record<string, { name: string | null; currency: string }>;
 
 /** Names and currencies of the shops in a record, so their amounts can be shown in their own currency. */
 export async function loadShopProfiles(pubs: string[]): Promise<ShopProfiles> {
