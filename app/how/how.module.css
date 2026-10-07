@@ -1,0 +1,186 @@
+/* /how: the mechanism in one figure, then every claim next to the transaction that proves it. */
+
+.lede {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-l);
+  max-width: 44ch;
+}
+
+.figure {
+  margin: var(--space-5) 0 var(--space-6);
+}
+
+/* three stages, read left to right on a wide page and top to bottom on a phone */
+.stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  counter-reset: stage;
+}
+
+@media (min-width: 760px) {
+  .stages {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+}
+
+.stage {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 2px solid var(--rule-strong);
+  counter-increment: stage;
+}
+
+.stage::before {
+  content: counter(stage);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stage h3 {
+  font-size: var(--text-l);
+}
+
+.stage p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.stage[data-verdict] {
+  border-top-color: var(--margin);
+}
+
+.stage[data-verdict]::before {
+  color: var(--margin);
+}
+
+.figures {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-s);
+}
+
+.caption {
+  margin-top: var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  max-width: 34ch;
+}
+
+.caption span {
+  background: linear-gradient(transparent 52%, var(--highlight) 52%, var(--highlight) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-inline: 0.15em;
+}
+
+.section {
+  padding: var(--space-5) 0 0;
+}
+
+.section h2 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-3);
+}
+
+.claims {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.claims > li {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--rule);
+  scroll-margin-top: var(--space-5);
+}
+
+@media (min-width: 900px) {
+  .claims > li {
+    grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.claims h3 {
+  font-size: var(--text-l);
+}
+
+.claims p {
+  margin: 0 0 var(--space-2);
+}
+
+.look {
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+.proof {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-2);
+  font-size: var(--text-s);
+}
+
+/* links in the proof row are flex items, so they need their own full-size tap target */
+.proof a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target);
+}
+
+.hash,
+.cmd {
+  font-family: ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+  font-size: var(--text-xs);
+  padding: 2px var(--space-2);
+  background: var(--sunk);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.status > div {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule);
+}
+
+@media (min-width: 900px) {
+  .status > div {
+    grid-template-columns: minmax(0, 8rem) minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.status dt {
+  font-weight: 700;
+}
+
+.status dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.check {
+  margin-top: var(--space-5);
+}

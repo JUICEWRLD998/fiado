@@ -1,0 +1,65 @@
+/* /evidence: one ruled entry per real shop, counts in a row. */
+
+.totals {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.shop {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+
+.counts > div {
+  display: grid;
+  gap: 2px;
+}
+
+.counts dt {
+  color: var(--ink-2);
+  font-size: var(--text-s);
+}
+
+.counts dd {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.refused {
+  color: var(--margin);
+}
+
+.rules {
+  margin: var(--space-5) 0 0;
+  padding: var(--space-4) 0 0;
+  border-top: 1px solid var(--rule);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.rules h2 {
+  font-size: var(--text-l);
+}
+
+.rules ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--ink-2);
+}
+
+.empty {
+  display: grid;
+  gap: var(--space-3);
+}

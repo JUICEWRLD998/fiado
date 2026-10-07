@@ -11,6 +11,13 @@ const LINKS = [
   { href: '/c', label: 'My tabs' },
 ] as const;
 
+// The proof pages, reachable from every page. They live in the footer so the header stays two links wide on a phone.
+const PROOF = [
+  { href: '/how', label: 'How it works' },
+  { href: '/evidence', label: 'Evidence' },
+  { href: '/try', label: 'Practice shop' },
+] as const;
+
 /** The desk: skip link, a bar with the wordmark and the two places to go, the page, and an optional colophon. */
 export function Shell({ children, footer, tag = 'Testnet' }: { children: ReactNode; footer?: ReactNode; tag?: string | null }) {
   const path = usePathname();
@@ -37,7 +44,16 @@ export function Shell({ children, footer, tag = 'Testnet' }: { children: ReactNo
       <main id="main" className={s.main}>
         {children}
       </main>
-      {footer && <footer className={s.foot}>{footer}</footer>}
+      <footer className={s.foot}>
+        <nav className={s.proof} aria-label="Proof">
+          {PROOF.map((l) => (
+            <Link key={l.href} href={l.href} aria-current={path === l.href ? 'page' : undefined}>
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+        {footer}
+      </footer>
     </div>
   );
 }

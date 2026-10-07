@@ -2,6 +2,19 @@
 
 Newest first. Every entry carries the measurement that justified it.
 
+## 2026-10-07 — Phase 8: proof pages and the practice shop
+
+**Measurement:** `npm run check:proof` (6 claims against live Horizon, two planted controls caught), `npx vitest run` (235 pass), `npx playwright test phase8 --project=desktop` (4 pass on live testnet, 2.1 min), `node design/verify/phase8.mjs` (/how, /evidence, /try at 8 widths x 2 schemes: no overflow, no tap target under 24px, no unexpected console error, planted overflow control registered). With the registry temporarily pointed at a known test shop, `/evidence` rendered 2 customers, 2 purchases, 1 refusal, 0 repayments, equal to the captured Horizon feed (registry reverted to empty before commit).
+
+**Decisions:**
+1. **/evidence is registry-driven and starts empty.** A shop is shown only if `src/evidence/registry.ts` holds an entry with a first name, city and consent date; an invalid entry fails the build. No shopkeeper has consented yet, so the page says so and shows no numbers. It is filled in Phase 9.
+2. **Refusals are counted from failed transactions** (`include_failed=true`), and only when the transaction's own result says line-full. A planted control caught a real bug while writing this: the first decoder swallowed an SDK shape error and returned false for everything.
+3. **The practice shop ("judge mode") is real, not a mock.** `/try` creates a fresh shop and two customers on testnet in the visitor's tab (keys in memory only, funded by the existing /api/fund), then every purchase, refusal and repayment is a genuine transaction. It is labelled Demo on every row and is never listed on /evidence. Keys are never shipped in the bundle.
+4. **/how claims are data** (`src/proof/claims.ts`) checked by script, so the page cannot drift from the ledger. The "shop cannot forge a debt" claim has no ledger entry (the network rejects it before recording), so it points at `npm run spike` and says why.
+5. **The proof links live in the footer of every page**, so the header stays two links wide at 320px.
+
+**Not done in this phase:** the deployed-URL check from a clean browser (nothing is deployed yet; Vercel and the handoff Redis are untested live).
+
 ## 2026-10-06 — Phases 3-5: the thin path works end to end, in two real browsers, on testnet
 
 **Measurement:** `npx playwright test thin-path` (desktop shop + phone-sized customer, each with its own virtual passkey authenticator with PRF), run twice against live testnet, both green (1.3 and 1.5 min). Each run uses brand-new accounts. Checked against the ledger, not just the UI. Run 1:

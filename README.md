@@ -5,7 +5,7 @@
 A shop gives a customer a credit line. Only the customer can write a debt into it. The Stellar network refuses
 any purchase over the limit. A customer who pays on time can carry that record to the next shop.
 
-> Status: **in build, testnet only.** The thin path (join, buy on credit, over-limit refusal, repayment) works end to end in two real browsers. Labels used everywhere: LIVE / NEXT / NOT LIVE.
+> Status: **in build, testnet only.** The thin path (join, buy on credit, over-limit refusal, repayment) works end to end in two real browsers. `/how` checks every claim against the ledger, `/evidence` lists consenting real shops, and `/try` is a practice shop that shows the network refusing a purchase. Labels used everywhere: LIVE / NEXT / NOT LIVE.
 > Built for the Find Your Way Hackathon (Stellar Passport), General Track, by Mustapha Fadhlullah.
 
 ## The problem, in shopkeepers' words

@@ -17,7 +17,7 @@ export type RawPayment = {
   from?: string;
   to?: string;
   amount?: string;
-  transaction?: { memo?: string; memo_type?: string; successful?: boolean };
+  transaction?: { memo?: string; memo_type?: string; successful?: boolean; result_xdr?: string };
 };
 
 export type RawBalance = {
