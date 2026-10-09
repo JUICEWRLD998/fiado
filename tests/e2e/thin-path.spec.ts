@@ -33,6 +33,7 @@ test('shop and customer complete the thin path on testnet', async ({ browser, ba
   await shop.getByTestId('create-shop').click();
   await expect(shop.getByTestId('shop-ready')).toBeVisible({ timeout: 150_000 });
   await expect(shop.getByTestId('shop-title')).toHaveText('Mama Bisi');
+  await expect(shop.getByTestId('shop-key-full')).toHaveText(/^G[A-Z2-7]{55}$/); // the full public key, so a shop can send it
   await shop.screenshot({ path: `${SHOTS}/01-shop-ready.png` });
 
   // ---- 2. add a customer: the shop shows a code
