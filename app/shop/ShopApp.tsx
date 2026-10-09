@@ -28,6 +28,29 @@ import { AsideCard, Work } from '@/ui/Work';
 import { Gauge } from '@/ui/Gauge';
 
 const flowFailed = (message: string): ShopFlowState => ({ step: 'failed', message });
+
+/** The shop's full public address, to copy and send. It is public (it is on the ledger), never a secret. */
+function CopyKey({ pub }: { pub: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(pub);
+      setCopied(true);
+    } catch {
+      setCopied(false); // the full key below stays selectable
+    }
+  }
+  return (
+    <div style={{ display: 'grid', gap: 8 }}>
+      <Button variant="secondary" data-testid="copy-shop-key" onClick={() => void copy()}>
+        {copied ? 'Copied' : 'Copy shop key'}
+      </Button>
+      <code data-testid="shop-key-full" style={{ overflowWrap: 'anywhere', userSelect: 'all', fontSize: 12 }}>
+        {pub}
+      </code>
+    </div>
+  );
+}
 const CURRENCIES = ['₦', 'S/', 'R$', '$'];
 const units = (n: bigint) => Number(n) / 10_000_000;
 
@@ -251,6 +274,7 @@ function Ready({ custody, kp }: { custody: Custody; kp: Keypair }) {
             <p className={u.meta} style={{ margin: 0 }}>
               Testnet · {shortKey(pub)}
             </p>
+            <CopyKey pub={pub} />
           </div>
         }
       >
