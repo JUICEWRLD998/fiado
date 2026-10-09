@@ -58,7 +58,7 @@ protocol features. On Stellar the credit book needs no contract to audit and no 
 
 ## Deploying (Vercel)
 
-The two phones pass a transaction through a small mailbox (`/api/handoff`). Locally it lives in memory. **On Vercel it needs Redis**: add the free Upstash integration (Vercel dashboard → Storage → Upstash) and its environment variables are picked up automatically. Everything else is static or stateless. Nothing secret is stored.
+The two phones pass a transaction through a small mailbox (`/api/handoff`). Locally it lives in memory. **On Vercel it needs a shared database**: connect a Neon Postgres database to the project (Vercel dashboard → Storage → Neon) and `DATABASE_URL` is picked up automatically; the table is created on first use. Upstash Redis also works if its variables are set. Everything else is static or stateless. Nothing secret is stored.
 
 ## Develop
 
