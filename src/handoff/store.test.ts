@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { getStore, MemoryStore, setStoreForTests, UpstashStore } from './store';
+import { getStore, MemoryStore, NeonStore, type RunSql, setStoreForTests, UpstashStore } from './store';
 
 describe('MemoryStore', () => {
   it('writes once, reads back, and refuses to overwrite', async () => {
@@ -69,8 +69,67 @@ describe('UpstashStore (fake fetch, so the request shape is checked exactly)', (
   });
 });
 
+describe('NeonStore (fake SQL runner, so the statements are checked exactly)', () => {
+  function fake(respond: (text: string, params: unknown[]) => Record<string, unknown>[]) {
+    const calls: { text: string; params: unknown[] }[] = [];
+    const run: RunSql = async (text, params) => {
+      calls.push({ text, params });
+      return respond(text, params);
+    };
+    return { calls, run };
+  }
+
+  it('creates its table once, then writes with one atomic upsert that only replaces an expired row', async () => {
+    const f = fake((text) => (text.startsWith('INSERT') ? [{ key: 'k' }] : []));
+    const s = new NeonStore(f.run);
+    expect(await s.setIfAbsent('k', 'v', 600)).toBe(true);
+    expect(await s.setIfAbsent('k2', 'v', 600)).toBe(true);
+    expect(f.calls.filter((c) => c.text.startsWith('CREATE TABLE IF NOT EXISTS fiado_handoff'))).toHaveLength(1);
+    const insert = f.calls.find((c) => c.text.startsWith('INSERT'))!;
+    expect(insert.params).toEqual(['k', 'v', 600]);
+    expect(insert.text).toMatch(/ON CONFLICT \(key\) DO UPDATE/);
+    expect(insert.text).toMatch(/WHERE fiado_handoff\.expires_at <= now\(\)/);
+  });
+
+  it('reports false when the key is live (the upsert returns no row): planted control', async () => {
+    const f = fake((text) => (text.startsWith('INSERT') ? [] : []));
+    expect(await new NeonStore(f.run).setIfAbsent('k', 'v', 60)).toBe(false);
+  });
+
+  it('reads only unexpired values and returns null when there is no row', async () => {
+    const f = fake((text) => (text.startsWith('SELECT') ? [{ value: 'hello' }] : []));
+    const s = new NeonStore(f.run);
+    expect(await s.get('k')).toBe('hello');
+    const select = f.calls.find((c) => c.text.startsWith('SELECT'))!;
+    expect(select.text).toMatch(/expires_at > now\(\)/);
+    expect(select.params).toEqual(['k']);
+    expect(await new NeonStore(fake(() => []).run).get('k')).toBeNull();
+  });
+
+  it('retries table creation after a failure instead of caching it', async () => {
+    let fail = true;
+    const f = fake((text) => {
+      if (text.startsWith('CREATE') && fail) throw new Error('db asleep');
+      return text.startsWith('INSERT') ? [{ key: 'k' }] : [];
+    });
+    const s = new NeonStore(f.run);
+    await expect(s.setIfAbsent('k', 'v', 60)).rejects.toThrow(/db asleep/);
+    fail = false;
+    expect(await s.setIfAbsent('k', 'v', 60)).toBe(true);
+  });
+});
+
 describe('getStore', () => {
   afterEach(() => setStoreForTests(undefined));
+
+  it('uses Neon when only a database url is set, and prefers Upstash when both are set', () => {
+    setStoreForTests(undefined);
+    expect(getStore({ DATABASE_URL: 'postgres://u:p@ep-x.neon.tech/db' }).kind).toBe('neon');
+    setStoreForTests(undefined);
+    expect(getStore({ POSTGRES_URL: 'postgres://u:p@ep-x.neon.tech/db' }).kind).toBe('neon');
+    setStoreForTests(undefined);
+    expect(getStore({ DATABASE_URL: 'postgres://u:p@h/db', UPSTASH_REDIS_REST_URL: 'https://a', UPSTASH_REDIS_REST_TOKEN: 't' }).kind).toBe('upstash');
+  });
 
   it('uses memory when no Redis is configured', () => {
     setStoreForTests(undefined);

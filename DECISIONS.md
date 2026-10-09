@@ -12,6 +12,8 @@ Three Lagos shopkeepers (Amina, Emeka, Chinedu) gave written consent on 2026-10-
 3. **Amounts are shown for this block only**, because all three shops are in Lagos and write in naira. Live counts stay counts-only.
 4. **No customer names or phones exist in the data file.**
 
+5. **Handoff store: Neon Postgres added** (`NeonStore` in `src/handoff/store.ts`). He connected a Vercel Neon database, which sets `DATABASE_URL` (or `POSTGRES_URL`), and the code ignored it, so a deploy would have silently fallen back to in-memory. Order now: Upstash variables, else Neon, else memory. One table `fiado_handoff(key, value, expires_at)`; write-once is one atomic `INSERT ... ON CONFLICT DO UPDATE ... WHERE expires_at <= now() RETURNING`. Tested against a fake SQL runner (statements, retry after a failed table create, planted "live key returns false" control); **not yet run against a live Neon**. No `.env` is committed; Vercel injects the variables at deploy time.
+
 **Not done:** on-chain lines for the three shops (they have not run their books on Fiado yet), the consented video, and the deployed-URL check. Exit evidence for Phase 9 (2+ non-team shops with real lines on the ledger) is NOT met.
 
 ## 2026-10-07 — Phase 8: proof pages and the practice shop
