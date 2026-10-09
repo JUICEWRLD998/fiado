@@ -38,3 +38,8 @@
     filter: drop-shadow(0 1px 1px oklch(0% 0 0 / 0.3)) drop-shadow(0 10px 14px oklch(0% 0 0 / 0.35));
   }
 }
+
+/* chosen with the switch, whatever the device setting is */
+:root[data-theme='dark'] .wrap {
+  filter: drop-shadow(0 1px 1px oklch(0% 0 0 / 0.3)) drop-shadow(0 10px 14px oklch(0% 0 0 / 0.35));
+}

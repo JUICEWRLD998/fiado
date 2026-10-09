@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import s from './shell.module.css';
+import { ThemeToggle } from './ThemeToggle';
 import { Wordmark } from './Wordmark';
 
 const LINKS = [
@@ -39,6 +40,7 @@ export function Shell({ children, footer, tag = 'Testnet' }: { children: ReactNo
               {tag}
             </span>
           )}
+          <ThemeToggle />
         </nav>
       </header>
       <main id="main" className={s.main}>

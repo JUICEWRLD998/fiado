@@ -15,7 +15,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${atkinson.variable}`}>
+    <html lang="en" className={`${bricolage.variable} ${atkinson.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Apply a saved light/dark choice before first paint, so the page never flashes the wrong theme. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('fiado-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`,
+          }}
+        />
+      </head>
       <body>
         <MotionProvider>{children}</MotionProvider>
       </body>
