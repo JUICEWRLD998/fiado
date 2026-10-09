@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PAPER_SHOPS, validatePaper } from '@/evidence/paper';
 import { REAL_SHOPS, validateRegistry } from '@/evidence/registry';
 import EvidenceView from './EvidenceView';
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function EvidencePage() {
   // A registry entry without consent, or with demo data, must stop the build rather than reach the page.
-  const problems = validateRegistry(REAL_SHOPS);
-  if (problems.length) throw new Error(`Invalid evidence registry:\n${problems.join('\n')}`);
-  return <EvidenceView shops={REAL_SHOPS} />;
+  const problems = [...validateRegistry(REAL_SHOPS), ...validatePaper(PAPER_SHOPS)];
+  if (problems.length) throw new Error(`Invalid evidence data:\n${problems.join('\n')}`);
+  return <EvidenceView shops={REAL_SHOPS} paperShops={PAPER_SHOPS} />;
 }

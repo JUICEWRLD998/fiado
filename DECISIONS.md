@@ -2,6 +2,18 @@
 
 Newest first. Every entry carries the measurement that justified it.
 
+## 2026-10-09 — Phase 9: three real shopkeepers, notebook figures
+
+Three Lagos shopkeepers (Amina, Emeka, Chinedu) gave written consent on 2026-10-08 to be named by first name and city on /evidence, with customer names and phone numbers kept private. The consent forms in hand carry form dates of 06/10, 07/10 and 08/10 and blank "date consent was given" lines; he confirmed all three consented on 2026-10-08.
+
+**Decisions:**
+1. **Notebook figures sit in their own labelled block**, `src/evidence/paper.ts`, never in the live counts. Their activity was recorded in paper notebooks, so it is not on the Stellar ledger and the page says so. The live registry (`registry.ts`) stays empty: it needs each shop's public key, which exists only after the shop joins on testnet.
+2. **Totals are computed from the per-day log**, not typed. A test pins them to the shopkeepers' combined table: 6 credit purchases, 3 repayments, 3 refusals, ₦15,500 issued, ₦6,500 repaid, ₦9,000 outstanding. A planted bad entry must be rejected.
+3. **Amounts are shown for this block only**, because all three shops are in Lagos and write in naira. Live counts stay counts-only.
+4. **No customer names or phones exist in the data file.**
+
+**Not done:** on-chain lines for the three shops (they have not run their books on Fiado yet), the consented video, and the deployed-URL check. Exit evidence for Phase 9 (2+ non-team shops with real lines on the ledger) is NOT met.
+
 ## 2026-10-07 — Phase 8: proof pages and the practice shop
 
 **Measurement:** `npm run check:proof` (6 claims against live Horizon, two planted controls caught), `npx vitest run` (235 pass), `npx playwright test phase8 --project=desktop` (4 pass on live testnet, 2.1 min), `node design/verify/phase8.mjs` (/how, /evidence, /try at 8 widths x 2 schemes: no overflow, no tap target under 24px, no unexpected console error, planted overflow control registered). With the registry temporarily pointed at a known test shop, `/evidence` rendered 2 customers, 2 purchases, 1 refusal, 0 repayments, equal to the captured Horizon feed (registry reverted to empty before commit).
