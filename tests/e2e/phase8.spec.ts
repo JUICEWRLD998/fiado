@@ -25,12 +25,16 @@ test('/how: six claims, each with a way to check it', async ({ page }) => {
   await expect(page.getByTestId('status')).toContainText('NOT LIVE');
 });
 
-test('/evidence: with no consenting shop it says so and shows no numbers', async ({ page }) => {
+test('/evidence: no live lines yet says so, and notebook figures sit apart, labelled', async ({ page }) => {
   await page.goto('/evidence');
   await expect(page.getByTestId('evidence-title')).toHaveText('Evidence');
-  await expect(page.getByTestId('evidence-empty')).toContainText('No shopkeeper has agreed to be listed yet');
+  await expect(page.getByTestId('evidence-empty')).toContainText('No shop has lines on the Stellar test network yet');
   await expect(page.getByTestId('evidence-totals')).toHaveCount(0);
   await expect(page.getByTestId('evidence-shop')).toHaveCount(0);
+  await expect(page.getByTestId('evidence-paper')).toContainText('not on the Stellar ledger');
+  await expect(page.getByTestId('paper-shop')).toHaveCount(3);
+  await expect(page.getByTestId('paper-totals')).toContainText('₦15,500 issued');
+  await expect(page.getByTestId('paper-totals')).toContainText('₦9,000 outstanding');
 });
 
 test('the proof links are on every page', async ({ page }) => {
