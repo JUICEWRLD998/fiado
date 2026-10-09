@@ -74,6 +74,30 @@
   white-space: nowrap;
 }
 
+/* the light/dark switch: an icon button with a full-size hit area */
+.theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target);
+  height: var(--target);
+  margin-left: var(--space-1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .theme:hover {
+    color: var(--ink);
+    background: var(--accent-wash);
+  }
+}
+
 .main {
   flex: 1;
   width: 100%;
@@ -151,5 +175,20 @@
 @media (max-width: 420px) {
   .tag {
     display: none;
+  }
+
+  /* wordmark, two links and the theme switch have to fit one line at 320px */
+  .bar {
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+  }
+
+  .link {
+    padding: 0 var(--space-2);
+    white-space: nowrap;
+  }
+
+  .theme {
+    margin-left: 0;
   }
 }
